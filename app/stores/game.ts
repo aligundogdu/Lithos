@@ -2,7 +2,7 @@
 import { defineStore, skipHydrate } from 'pinia';
 import { useStorage } from '@vueuse/core';
 import { computed } from 'vue';
-import { type GameState, MaterialType, type Worker, type Order, type ProductionTask, type Notification, type Message, ProductType, Season, type DailyState } from '~/types';
+import { type GameState, MaterialType, type Worker, type Order, type ProductionTask, type Notification, type Message, ProductType, Season, type DailyState, WorkerType } from '~/types';
 import { MATERIALS } from '~/constants/materials';
 import { TOOLS } from '~/constants/tools';
 import { RANKS } from '~/constants/ranks';
@@ -140,12 +140,54 @@ export const useGameStore = defineStore('game', () => {
 
     // Daily States
     const DAILY_STATES: DailyState[] = [
-        { id: 'normal', text: 'Normal', effect: {} },
-        { id: 'sore_joints', text: 'Eklemler Ağrıyor', effect: { speed: -0.15 } },
-        { id: 'bad_food', text: 'Kötü Yemek', effect: { risk: 0.10 } },
-        { id: 'inspired', text: 'İlham Geldi', effect: { quality: 0.20, speed: 0.10 } },
-        { id: 'tired', text: 'Yorgun', effect: { speed: -0.10 } },
-        { id: 'energetic', text: 'Enerjik', effect: { speed: 0.15 } }
+        {
+            id: 'normal',
+            text: 'Normal',
+            icon: '😐',
+            color: 'text-stone-400',
+            description: 'Sıradan bir gün.',
+            effect: {}
+        },
+        {
+            id: 'sore_joints',
+            text: 'Eklemler Ağrıyor',
+            icon: '🤕',
+            color: 'text-red-400',
+            description: 'Hız biraz düşük.',
+            effect: { speed: -0.15 }
+        },
+        {
+            id: 'bad_food',
+            text: 'Kötü Yemek',
+            icon: '🤢',
+            color: 'text-orange-400',
+            description: 'Dikkat dağınıklığı var.',
+            effect: { risk: 0.10 }
+        },
+        {
+            id: 'inspired',
+            text: 'İlham Geldi',
+            icon: '✨',
+            color: 'text-purple-400',
+            description: 'Hem hızlı hem kaliteli!',
+            effect: { quality: 0.20, speed: 0.10 }
+        },
+        {
+            id: 'tired',
+            text: 'Yorgun',
+            icon: '😫',
+            color: 'text-yellow-600',
+            description: 'Biraz yavaş çalışıyor.',
+            effect: { speed: -0.10 }
+        },
+        {
+            id: 'energetic',
+            text: 'Enerjik',
+            icon: '⚡',
+            color: 'text-yellow-400',
+            description: 'Bugün çok hızlı!',
+            effect: { speed: 0.15 }
+        }
     ];
 
     // Season Effects Helper

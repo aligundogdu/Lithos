@@ -29,6 +29,9 @@ export enum Season {
 export interface DailyState {
     id: string;
     text: string;
+    icon: string; // Emoji or icon class
+    color: string; // Tailwind text color class
+    description: string; // Flavor text
     effect: {
         speed?: number;
         risk?: number;

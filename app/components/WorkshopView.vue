@@ -27,19 +27,16 @@
             </div>
         </div>
         
-        <div class="grid grid-cols-3 gap-3">
-           <div v-for="(amount, type) in gameStore.state.inventory" :key="type" class="bg-stone-800 p-3 rounded border border-stone-600 flex flex-col items-center text-center group relative hover:border-amber-500 transition-colors">
-             <div class="w-16 h-16 mb-2 relative flex items-center justify-center">
-                <img :src="`/images/materials/${type}.png`" :alt="getMaterialName(type)" class="max-w-full max-h-full drop-shadow-lg transform group-hover:scale-110 transition-transform duration-300">
-             </div>
-             <span class="capitalize text-stone-300 font-bold text-sm mb-1">{{ getMaterialName(type) }}</span>
-             <span class="font-mono text-amber-400 text-lg">{{ formatNumber(amount) }}</span>
+        <div class="grid grid-cols-4 gap-2">
+           <div v-for="(amount, type) in gameStore.state.inventory" :key="type" class="bg-stone-800 p-2 rounded border border-stone-600 flex flex-col items-center text-center group relative hover:border-amber-500 transition-colors">
+             <span class="capitalize text-stone-300 font-bold text-xs mb-0.5 truncate w-full">{{ getMaterialName(type) }}</span>
+             <span class="font-mono text-amber-400 text-sm">{{ formatNumber(amount) }}</span>
              
              <!-- Sell Button (Overlay) -->
              <button 
                v-if="amount > 0"
                @click="gameStore.sellMaterial(type, 1)"
-               class="absolute top-2 right-2 w-6 h-6 bg-stone-900/80 hover:bg-green-600 text-stone-400 hover:text-white rounded-full flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100"
+               class="absolute top-1 right-1 w-5 h-5 bg-stone-900/80 hover:bg-green-600 text-stone-400 hover:text-white rounded-full flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100 text-xs"
                :title="t.common.sell"
              >
                $
@@ -59,11 +56,23 @@
             <div class="text-stone-200 font-bold text-[10px] truncate w-full">{{ worker.name }}</div>
             
             <!-- Tooltip for details -->
-            <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-stone-900 text-stone-200 text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 border border-stone-600 shadow-xl">
-              <div class="font-bold text-amber-500">{{ worker.name }}</div>
-              <div class="text-[10px] capitalize">{{ getWorkerTypeName(worker.type) }}</div>
-              <div class="text-[10px] font-mono">{{ t.common.skill }}: {{ worker.skill }}</div>
+            <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-stone-900 text-stone-200 text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 border border-stone-600 shadow-xl text-left">
+              <div class="font-bold text-amber-500 mb-1">{{ worker.name }}</div>
+              <div class="text-[10px] capitalize mb-0.5">{{ getWorkerTypeName(worker.type) }}</div>
+              <div class="text-[10px] font-mono mb-1">{{ t.common.skill }}: {{ worker.skill }}</div>
+              
+              <!-- Daily Mood -->
+              <div v-if="worker.dailyState" class="border-t border-stone-700 pt-1 mt-1">
+                <div class="flex items-center gap-1">
+                    <span>{{ worker.dailyState.icon }}</span>
+                    <span class="font-bold" :class="worker.dailyState.color">{{ worker.dailyState.text }}</span>
+                </div>
+                <div class="text-[9px] text-stone-400 italic">{{ worker.dailyState.description }}</div>
+              </div>
             </div>
+            
+            <!-- Mood Dot -->
+            <div v-if="worker.dailyState" class="absolute top-1 right-1 w-2 h-2 rounded-full" :class="worker.dailyState.color.replace('text-', 'bg-')"></div>
           </div>
         </div>
       </div>
