@@ -6,7 +6,9 @@
         <div class="flex gap-4 text-sm text-stone-400">
           <span>{{ t.common.day }}: {{ gameStore.currentDay }}</span>
           <span>{{ t.common.hour }}: {{ gameStore.currentHour.toString().padStart(2, '0') }}:00</span>
-          <span class="capitalize text-amber-600 font-bold">{{ gameStore.currentSeason }}</span>
+          <span class="capitalize text-amber-600 font-bold">
+            {{ getSeasonEmoji(gameStore.currentSeason) }} {{ gameStore.currentSeason }}
+          </span>
         </div>
       </div>
       <LanguageSwitcher />
@@ -181,5 +183,15 @@ function getStageLabel(stage: string): string {
     inspection: '🔍 Kalite Kontrol'
   };
   return labels[stage as keyof typeof labels] || stage;
+}
+
+function getSeasonEmoji(season: string): string {
+  const emojis: Record<string, string> = {
+    spring: '🌸',
+    summer: '☀️',
+    autumn: '🍂',
+    winter: '❄️'
+  };
+  return emojis[season] || '';
 }
 </script>
