@@ -45,7 +45,9 @@ export const tr = {
         requirements: 'Gereksinimler',
         duration: 'Süre',
         locked: 'Kilitli',
-        unlocked: 'Açık'
+        unlocked: 'Açık',
+        storage: 'Depo',
+        volume: 'Hacim'
     },
 
     // Game Title
@@ -161,6 +163,8 @@ export const tr = {
         consultantHiredDesc: '{0} ile anlaşıldı.',
         consultantFired: 'Danışman Kovuldu',
         consultantFiredDesc: 'Danışman ile yollar ayrıldı.',
+        storageFull: 'Depo Dolu!',
+        storageFullDesc: 'Depoda yeterli yer yok. Yer açmak için malzeme satın veya üretim yapın.',
         rankUp: 'Rütbe Atladınız!',
         rankUpDesc: 'Tebrikler! Yeni rütbeniz: {0}.',
         insufficientFunds: 'Yetersiz Bakiye',
@@ -364,6 +368,7 @@ export const tr = {
         pending: 'Bekliyor',
         active: 'Aktif',
         completed: 'Tamamlandı',
-        failed: 'Başarısız'
+        failed: 'Başarısız',
+        pending_storage: 'Depo Bekliyor'
     }
 };

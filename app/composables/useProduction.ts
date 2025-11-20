@@ -134,7 +134,7 @@ export const useProduction = () => {
                 // Hard materials (marble): 70% base
                 let baseSuccess = 0.85 - (materialDifficulty * 0.30); // 0.85 for clay, 0.70 for marble
 
-                let successChance = baseSuccess + skillBonus + reputationBonus;
+                let successChance = baseSuccess + skillBonus + reputationBonus + teamBonus;
 
                 // Check for quality tools (polishing cloth, etc.)
                 if (master.equippedToolIds) {
@@ -184,7 +184,7 @@ export const useProduction = () => {
                     // Apprentice: Base success depends on material + reputation
                     let baseSuccess = 0.60 - (materialDifficulty * 0.40); // 60% for clay, 40% for marble
                     const skillBonus = apprentice.skill * 0.02;
-                    let successChance = baseSuccess + skillBonus + reputationBonus;
+                    let successChance = baseSuccess + skillBonus + reputationBonus + teamBonus;
 
                     // Apply task risk
                     successChance = successChance * (1 - taskRisk * 0.6);
@@ -212,7 +212,7 @@ export const useProduction = () => {
                 } else {
                     // Only slaves - very material-dependent
                     let baseSuccess = 0.50 - (materialDifficulty * 0.60); // 50% for clay, 20% for marble
-                    let successChance = baseSuccess + reputationBonus;
+                    let successChance = baseSuccess + reputationBonus + teamBonus;
 
                     // Apply task risk heavily
                     successChance = successChance * (1 - taskRisk * 0.8);

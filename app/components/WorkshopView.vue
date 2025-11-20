@@ -4,8 +4,9 @@
       <div>
         <h1 class="text-3xl font-serif text-amber-500 mb-2">{{ t.game.title }}</h1>
         <div class="flex gap-4 text-sm text-stone-400">
-          <span>{{ t.common.day }}: {{ Math.floor(gameStore.state.gameTime / 1440) }}</span>
-          <span>{{ t.common.hour }}: {{ Math.floor((gameStore.state.gameTime % 1440) / 60).toString().padStart(2, '0') }}:00</span>
+          <span>{{ t.common.day }}: {{ gameStore.currentDay }}</span>
+          <span>{{ t.common.hour }}: {{ gameStore.currentHour.toString().padStart(2, '0') }}:00</span>
+          <span class="capitalize text-amber-600 font-bold">{{ gameStore.currentSeason }}</span>
         </div>
       </div>
       <LanguageSwitcher />
@@ -14,12 +15,23 @@
     <!-- Visual Representation Area (Placeholder) -->
     <div class="grid grid-cols-2 gap-6 mb-8">
       <div class="bg-stone-700/50 p-4 rounded border border-stone-600">
-        <h2 class="text-xl font-serif text-stone-300 mb-4">{{ t.workshop.inventory }}</h2>
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-serif text-stone-300">{{ t.workshop.inventory }}</h2>
+            <!-- Storage Bar -->
+            <div class="w-32 bg-stone-900 h-3 rounded-full overflow-hidden border border-stone-600 relative" :title="`${gameStore.currentStorageLoad} / ${gameStore.maxStorageCapacity} VU`">
+                <div 
+                class="h-full transition-all duration-500"
+                :class="gameStore.storagePercentage > 90 ? 'bg-red-600' : 'bg-blue-600'"
+                :style="{ width: `${gameStore.storagePercentage}%` }"
+                ></div>
+            </div>
+        </div>
+        
         <ul class="space-y-2">
            <li v-for="(amount, type) in gameStore.state.inventory" :key="type" class="flex justify-between items-center">
              <span class="capitalize text-stone-400">{{ getMaterialName(type) }}</span>
              <div class="flex items-center gap-2">
-               <span class="font-mono text-amber-400">{{ Math.floor(amount) }}</span>
+               <span class="font-mono text-amber-400">{{ formatNumber(amount) }}</span>
                <button 
                  v-if="amount > 0"
                  @click="gameStore.sellMaterial(type, 1)"
@@ -85,8 +97,9 @@
               'text-amber-500': task.status === 'active',
               'text-green-500': task.status === 'completed',
               'text-red-500': task.status === 'failed',
-              'text-stone-500': task.status === 'pending'
-            }" class="text-xs capitalize font-bold">{{ task.status }}</span>
+              'text-stone-500': task.status === 'pending',
+              'text-orange-500': task.status === 'pending_storage'
+            }" class="text-xs capitalize font-bold">{{ t.status[task.status] }}</span>
           </div>
           
           <div class="w-full bg-stone-900 h-3 rounded-full overflow-hidden relative">
@@ -120,6 +133,7 @@ import { useTranslation } from '~/composables/useTranslation';
 import { useMaterialTranslation } from '~/composables/useMaterialTranslation';
 import { useWorkerTranslation } from '~/composables/useWorkerTranslation';
 import LanguageSwitcher from '~/components/LanguageSwitcher.vue';
+import { formatNumber } from '~/utils/formatters';
 
 const gameStore = useGameStore();
 const { t } = useTranslation();

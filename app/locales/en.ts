@@ -45,7 +45,9 @@ export const en = {
         requirements: 'Requirements',
         duration: 'Duration',
         locked: 'Locked',
-        unlocked: 'Unlocked'
+        unlocked: 'Unlocked',
+        storage: 'Storage',
+        volume: 'Volume'
     },
 
     // Game Title
@@ -161,6 +163,8 @@ export const en = {
         consultantHiredDesc: 'Hired {0}.',
         consultantFired: 'Consultant Fired',
         consultantFiredDesc: 'Consultant fired.',
+        storageFull: 'Storage Full!',
+        storageFullDesc: 'Not enough space in storage. Sell materials or produce items to free up space.',
         rankUp: 'Rank Up!',
         rankUpDesc: 'Congratulations! New rank: {0}.',
         insufficientFunds: 'Insufficient Funds',
@@ -362,6 +366,7 @@ export const en = {
         pending: 'Pending',
         active: 'Active',
         completed: 'Completed',
-        failed: 'Failed'
+        failed: 'Failed',
+        pending_storage: 'Pending Storage'
     }
 };

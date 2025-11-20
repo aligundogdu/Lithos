@@ -67,5 +67,60 @@ export const UPGRADES: Record<string, Upgrade> = {
         requirements: {
             rankIndex: 5
         }
+    },
+    'storage_1': {
+        id: 'storage_1',
+        name: 'Arka Bahçe Temizliği',
+        description: 'Depo kapasitesini 100 VU\'ya çıkarır.',
+        cost: 100,
+        effect: {
+            type: 'storage',
+            value: 100
+        },
+        requirements: {
+            rankIndex: 1
+        }
+    },
+    'storage_2': {
+        id: 'storage_2',
+        name: 'Ahşap Sundurma',
+        description: 'Depo kapasitesini 250 VU\'ya çıkarır.',
+        cost: 500,
+        effect: {
+            type: 'storage',
+            value: 250
+        },
+        requirements: {
+            rankIndex: 3,
+            previousUpgradeId: 'storage_1'
+        }
+    },
+    'storage_3': {
+        id: 'storage_3',
+        name: 'Taş Ambar',
+        description: 'Depo kapasitesini 600 VU\'ya çıkarır.',
+        cost: 2000,
+        effect: {
+            type: 'storage',
+            value: 600
+        },
+        requirements: {
+            rankIndex: 6,
+            previousUpgradeId: 'storage_2'
+        }
+    },
+    'storage_4': {
+        id: 'storage_4',
+        name: 'Liman Deposu',
+        description: 'Depo kapasitesini 2000 VU\'ya çıkarır.',
+        cost: 10000,
+        effect: {
+            type: 'storage',
+            value: 2000
+        },
+        requirements: {
+            rankIndex: 10,
+            previousUpgradeId: 'storage_3'
+        }
     }
 };

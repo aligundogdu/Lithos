@@ -45,6 +45,7 @@ export interface Material {
     basePrice: number;
     description: string;
     unlockCondition?: string; // Text to show when locked
+    volume: number;
 }
 
 export interface Student {
@@ -115,7 +116,7 @@ export interface ProductionTask {
     totalDuration: number; // In game minutes (ticks)
     currentDuration: number;
     risk: number; // Calculated risk
-    status: 'pending' | 'active' | 'completed' | 'failed';
+    status: 'pending' | 'active' | 'completed' | 'failed' | 'pending_storage';
     currentStage: 'roughing' | 'detailing' | 'inspection';
 }
 
@@ -144,6 +145,7 @@ export interface GameState {
     activeConsultantIds: string[];
     supplierSettings: Record<MaterialType, number>; // MaterialType -> Threshold
     currentRankIndex: number; // 0-14
+    maxStorageCapacity: number;
 }
 
 export enum ConsultantType {
@@ -176,7 +178,7 @@ export interface Upgrade {
     cost: number;
     reputationCost?: number;
     effect: {
-        type: 'speed' | 'cost' | 'quality' | 'unlock' | 'efficiency' | 'market';
+        type: 'speed' | 'cost' | 'quality' | 'unlock' | 'efficiency' | 'market' | 'storage';
         value: number;
         target?: string;
     };

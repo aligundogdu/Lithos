@@ -7,8 +7,10 @@ export const MATERIALS: Record<MaterialType, Material> = {
         hardness: 0.5,
         brittleness: 0.1,
         prestige: 1,
-        basePrice: 10, // Small profit
-        description: 'Nehir yatağından toplanan yumuşak çamur. Başlangıç için ideal.'
+        basePrice: 10,
+        description: 'Nehir yatağından toplanan yumuşak çamur. Başlangıç için ideal.',
+        volume: 1,
+        unlockCondition: 'available'
     },
     [MaterialType.LIMESTONE]: {
         id: MaterialType.LIMESTONE,
@@ -18,6 +20,7 @@ export const MATERIALS: Record<MaterialType, Material> = {
         prestige: 5,
         basePrice: 50,
         description: 'İşlemesi kolay, yaygın bulunan bir taş.',
+        volume: 3,
         unlockCondition: 'Acemi Yontucu (Tier 3)'
     },
     [MaterialType.MARBLE_PENTELIC]: {
@@ -28,6 +31,7 @@ export const MATERIALS: Record<MaterialType, Material> = {
         prestige: 20,
         basePrice: 300,
         description: 'Atina\'nın gururu. Saf beyaz ve kusursuz.',
+        volume: 5,
         unlockCondition: 'Agora Zanaatkarı (Tier 7)'
     },
     [MaterialType.BASALT]: {
@@ -38,6 +42,7 @@ export const MATERIALS: Record<MaterialType, Material> = {
         prestige: 50,
         basePrice: 800,
         description: 'Son derece sert ve işlemesi zor. Krallara layık.',
+        volume: 6,
         unlockCondition: 'İmparatorluk Sanatçısı (Tier 12)'
     },
     [MaterialType.RUBBLE]: {
@@ -47,6 +52,8 @@ export const MATERIALS: Record<MaterialType, Material> = {
         brittleness: 0,
         prestige: 1,
         basePrice: 8,
-        description: 'Üretim artığı taş parçaları. Az da olsa bir değeri vardır.'
+        description: 'Üretim artığı taş parçaları. Az da olsa bir değeri vardır.',
+        volume: 0.1,
+        unlockCondition: 'available'
     }
 };

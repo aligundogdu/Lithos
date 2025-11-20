@@ -162,6 +162,12 @@ Başarı = (Materyal Kolaylığı + Skill + İtibar + Tool) × (1 - Task Risk ×
 *   Maksimum: +%20 (1000 itibar'da)
 *   **Mantık:** Yüksek itibar = daha iyi atölye standartları
 
+#### Ekip Bonusu (YENİ!)
+*   **Formül:** (Ortalama Skill × %1) + (İşçi Sayısı × %2)
+*   **Maksimum:** +%10
+*   **Örnek:** 3 işçi, ortalama 5 skill = %5 + %6 = **+%10** bonus
+*   **Mantık:** Daha fazla göz = daha az hata
+
 #### Task Risk Etkisi
 *   Üretim sırasında hesaplanan **risk değeri** başarıyı düşürür
 *   Düşük skill, kötü tool, zor materyal = yüksek risk = düşük başarı
