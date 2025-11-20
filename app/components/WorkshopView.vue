@@ -27,22 +27,25 @@
             </div>
         </div>
         
-        <ul class="space-y-2">
-           <li v-for="(amount, type) in gameStore.state.inventory" :key="type" class="flex justify-between items-center">
-             <span class="capitalize text-stone-400">{{ getMaterialName(type) }}</span>
-             <div class="flex items-center gap-2">
-               <span class="font-mono text-amber-400">{{ formatNumber(amount) }}</span>
-               <button 
-                 v-if="amount > 0"
-                 @click="gameStore.sellMaterial(type, 1)"
-                 class="px-2 py-0.5 bg-stone-800 hover:bg-green-900 text-stone-400 hover:text-green-400 text-xs rounded border border-stone-600 transition-colors"
-                 :title="t.common.sell"
-               >
-                 {{ t.common.sell }}
-               </button>
+        <div class="grid grid-cols-3 gap-3">
+           <div v-for="(amount, type) in gameStore.state.inventory" :key="type" class="bg-stone-800 p-3 rounded border border-stone-600 flex flex-col items-center text-center group relative hover:border-amber-500 transition-colors">
+             <div class="w-16 h-16 mb-2 relative flex items-center justify-center">
+                <img :src="`/images/materials/${type}.png`" :alt="getMaterialName(type)" class="max-w-full max-h-full drop-shadow-lg transform group-hover:scale-110 transition-transform duration-300">
              </div>
-           </li>
-        </ul>
+             <span class="capitalize text-stone-300 font-bold text-sm mb-1">{{ getMaterialName(type) }}</span>
+             <span class="font-mono text-amber-400 text-lg">{{ formatNumber(amount) }}</span>
+             
+             <!-- Sell Button (Overlay) -->
+             <button 
+               v-if="amount > 0"
+               @click="gameStore.sellMaterial(type, 1)"
+               class="absolute top-2 right-2 w-6 h-6 bg-stone-900/80 hover:bg-green-600 text-stone-400 hover:text-white rounded-full flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100"
+               :title="t.common.sell"
+             >
+               $
+             </button>
+           </div>
+        </div>
       </div>
 
       <div class="bg-stone-700/50 p-4 rounded border border-stone-600">
