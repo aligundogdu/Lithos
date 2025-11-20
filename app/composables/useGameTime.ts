@@ -1,4 +1,5 @@
 import { useIntervalFn } from '@vueuse/core';
+import { computed } from 'vue';
 import { useGameStore } from '~/stores/game';
 import { useOrders } from '~/composables/useOrders';
 import { useProduction } from '~/composables/useProduction';
@@ -9,6 +10,11 @@ export const useGameTime = () => {
     const { processProductionTick } = useProduction();
 
     const GAME_MINUTES_PER_REAL_SECOND = 12; // 1 Real Minute = 0.5 Game Day (720 mins) -> 120s = 1440m -> 1s = 12m
+
+    // Dynamic Interval for Fast Forward at Night
+    const tickInterval = computed(() => {
+        return gameStore.isDaytime ? 1000 : 200; // 5x speed at night (20:00 - 06:00)
+    });
 
     // Game Loop
     const { pause, resume, isActive } = useIntervalFn(() => {
@@ -23,7 +29,10 @@ export const useGameTime = () => {
         // Order Management (Daily checks)
         // We can check every tick, but maybe limit generation frequency
         // Let's check every ~100 ticks or just randomly
-        if (Math.random() < 0.05) { // 5% chance per second to generate order
+        // Adjust probability for faster ticks to keep generation rate roughly same per real second?
+        // Or keep it per tick (which means more orders at night? No, orders usually come during day logic?)
+        // Let's keep it simple for now.
+        if (Math.random() < 0.05) { // 5% chance per tick
             generateOrder();
         }
 
@@ -32,7 +41,7 @@ export const useGameTime = () => {
             checkOrderExpiry();
         }
 
-    }, 1000);
+    }, tickInterval);
 
     function calculateOfflineProgress() {
         const now = Date.now();
