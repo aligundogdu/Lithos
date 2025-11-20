@@ -19,6 +19,23 @@ export enum Rank {
     EXPERT = 'expert'
 }
 
+export enum Season {
+    SPRING = 'spring',
+    SUMMER = 'summer',
+    AUTUMN = 'autumn',
+    WINTER = 'winter'
+}
+
+export interface DailyState {
+    id: string;
+    text: string;
+    effect: {
+        speed?: number;
+        risk?: number;
+        quality?: number;
+    };
+}
+
 export interface Material {
     id: MaterialType;
     name: string;
@@ -54,6 +71,7 @@ export interface Worker {
     lastWorkedAt: number; // Game time
     baseSkill: number;
     negotiationPending?: boolean;
+    dailyState?: DailyState;
 }
 
 export enum ProductType {
@@ -98,6 +116,7 @@ export interface ProductionTask {
     currentDuration: number;
     risk: number; // Calculated risk
     status: 'pending' | 'active' | 'completed' | 'failed';
+    currentStage: 'roughing' | 'detailing' | 'inspection';
 }
 
 export interface GameState {

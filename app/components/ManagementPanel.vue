@@ -1,5 +1,9 @@
 <template>
-  <div class="flex flex-col h-full">
+  <div class="flex flex-col h-full relative">
+    <!-- Night Mode Overlay -->
+    <div v-if="!gameStore.isDaytime" class="absolute inset-0 bg-blue-900/30 pointer-events-none z-50 flex items-center justify-center">
+        <div class="text-4xl font-serif text-blue-200 animate-pulse">💤 Gece - Üretim Durdu</div>
+    </div>
     <!-- Tabs -->
     <div class="flex border-b border-stone-700">
       <button 
@@ -26,6 +30,16 @@
             <h1 class="text-xl font-serif text-amber-500 tracking-widest uppercase">{{ t.management.orders }}</h1>
             <div class="text-xs text-stone-500">{{ getRankTitle(gameStore.state.currentRankIndex + 1) }}</div>
           </div>
+        </div>
+        <!-- Time & Season Display -->
+        <div class="flex flex-col items-center">
+             <div class="text-2xl font-mono text-stone-300">
+                {{ gameStore.currentHour.toString().padStart(2, '0') }}:00
+             </div>
+             <div class="text-xs text-stone-500 flex gap-2">
+                <span>Gün {{ gameStore.currentDay }}</span>
+                <span class="capitalize text-amber-600 font-bold">{{ gameStore.currentSeason }}</span>
+             </div>
         </div>
         <div>
           <div class="text-xs text-stone-500 uppercase tracking-widest">{{ t.common.money }}</div>
@@ -133,18 +147,21 @@
               <div class="font-bold text-stone-200">{{ getMaterialName(material.id) }}</div>
               <div class="text-xs text-stone-500">{{ getMaterialDescription(material.id) }}</div>
             </div>
-            <div class="text-amber-400 font-mono">{{ material.basePrice }} D.</div>
+            <div class="text-right">
+              <div class="text-amber-400 font-mono">{{ getSeasonalPrice(material.id, material.basePrice) }} D.</div>
+              <div v-if="getSeasonalPrice(material.id, material.basePrice) > material.basePrice" class="text-xs text-blue-300">❄️ Kış +%30</div>
+            </div>
           </div>
           <div class="flex justify-between text-xs text-stone-400 mb-3">
             <span>{{ t.common.hardness }}: {{ material.hardness }}</span>
             <span>{{ t.common.brittleness }}: {{ Math.round(material.brittleness * 100) }}%</span>
           </div>
-          <button 
-            @click="buyMaterial(material.id, material.basePrice)"
-            class="w-full py-2 bg-stone-700 hover:bg-amber-700 text-stone-200 rounded transition-colors text-sm uppercase tracking-wide"
-            :disabled="gameStore.state.money < material.basePrice || !gameStore.unlockedMaterials.includes(material.id)"
-            :class="{ 'opacity-50 cursor-not-allowed': gameStore.state.money < material.basePrice || !gameStore.unlockedMaterials.includes(material.id) }"
-          >
+            <button 
+              @click="buyMaterial(material.id, getSeasonalPrice(material.id, material.basePrice))"
+              class="w-full py-2 bg-stone-700 hover:bg-amber-700 text-stone-200 rounded transition-colors text-sm uppercase tracking-wide"
+              :disabled="gameStore.state.money < getSeasonalPrice(material.id, material.basePrice) || !gameStore.unlockedMaterials.includes(material.id)"
+              :class="{ 'opacity-50 cursor-not-allowed': gameStore.state.money < getSeasonalPrice(material.id, material.basePrice) || !gameStore.unlockedMaterials.includes(material.id) }"
+            >
             {{ t.common.buy }}
           </button>
         </div>
@@ -214,10 +231,19 @@
                     <span class="text-xs px-1.5 py-0.5 bg-amber-900/50 text-amber-200 rounded border border-amber-800">Lvl {{ worker.level }}</span>
                   </div>
                   <div class="text-xs text-stone-500 capitalize flex items-center gap-2">
-                    {{ getWorkerTypeName(worker.type) }} 
-                    <span v-if="worker.skill < worker.baseSkill" class="text-red-400 flex items-center" title="Yetenek Köreliyor">
-                       (Paslanıyor 📉)
-                    </span>
+                    {{ getWorkerTypeName(worker.type) }}                     <span v-if="worker.skill < worker.baseSkill" class="text-red-400 flex items-center" title="Yetenek Köreliyor">
+                        (Paslanıyor 📉)
+                     </span>
+                  </div>
+                  <!-- Daily State -->
+                  <div v-if="worker.dailyState && worker.dailyState.id !== 'normal'" class="text-xs mt-1 px-2 py-0.5 rounded bg-stone-900 border border-stone-700 inline-block">
+                      <span class="text-stone-400">{{ worker.dailyState.text }}</span>
+                      <span v-if="worker.dailyState.effect.speed" :class="worker.dailyState.effect.speed > 0 ? 'text-green-400' : 'text-red-400'">
+                          {{ worker.dailyState.effect.speed > 0 ? '+' : '' }}{{ worker.dailyState.effect.speed * 100 }}% Hız
+                      </span>
+                      <span v-if="worker.dailyState.effect.risk" :class="worker.dailyState.effect.risk < 0 ? 'text-green-400' : 'text-red-400'">
+                          {{ worker.dailyState.effect.risk > 0 ? '+' : '' }}{{ worker.dailyState.effect.risk * 100 }}% Risk
+                      </span>
                   </div>
                   
                   <!-- XP Bar -->
@@ -757,6 +783,21 @@ const canStartProduction = computed(() => {
 });
 
 // Methods
+function getSeasonalPrice(materialId: MaterialType, basePrice: number): number {
+  let price = basePrice;
+  
+  // Winter: Stone materials +30%
+  if (gameStore.currentSeason === 'winter') {
+    if (materialId === MaterialType.LIMESTONE || 
+        materialId === MaterialType.MARBLE_PENTELIC || 
+        materialId === MaterialType.BASALT) {
+      price = Math.floor(price * 1.30);
+    }
+  }
+  
+  return price;
+}
+
 function buyMaterial(type: MaterialType, price: number) {
   if (gameStore.spendMoney(price)) {
     gameStore.addMaterial(type, 1);
@@ -844,7 +885,8 @@ function confirmProduction() {
     totalDuration: estimatedDuration.value,
     currentDuration: 0,
     risk: estimatedRisk.value,
-    status: 'pending' as const
+    status: 'pending' as const,
+    currentStage: 'roughing'
   };
 
   if (gameStore.startProduction(task)) {

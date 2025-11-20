@@ -2,7 +2,7 @@
 import { defineStore, skipHydrate } from 'pinia';
 import { useStorage } from '@vueuse/core';
 import { computed } from 'vue';
-import { type GameState, MaterialType, type Worker, type Order, type ProductionTask, type Notification, type Message, ProductType } from '~/types';
+import { type GameState, MaterialType, type Worker, type Order, type ProductionTask, type Notification, type Message, ProductType, Season, type DailyState } from '~/types';
 import { MATERIALS } from '~/constants/materials';
 import { TOOLS } from '~/constants/tools';
 import { RANKS } from '~/constants/ranks';
@@ -127,6 +127,52 @@ export const useGameStore = defineStore('game', () => {
         });
         return bonus;
     });
+
+    // Time & Season Getters
+    const currentDay = computed(() => Math.floor(state.value.gameTime / 1440));
+    const currentHour = computed(() => Math.floor((state.value.gameTime % 1440) / 60));
+    const currentSeason = computed(() => {
+        const seasonIndex = Math.floor(currentDay.value / 10) % 4;
+        return Object.values(Season)[seasonIndex] as Season;
+    });
+    const isDaytime = computed(() => currentHour.value >= 6 && currentHour.value < 20);
+
+    // Daily States
+    const DAILY_STATES: DailyState[] = [
+        { id: 'normal', text: 'Normal', effect: {} },
+        { id: 'sore_joints', text: 'Eklemler Ağrıyor', effect: { speed: -0.15 } },
+        { id: 'bad_food', text: 'Kötü Yemek', effect: { risk: 0.10 } },
+        { id: 'inspired', text: 'İlham Geldi', effect: { quality: 0.20, speed: 0.10 } },
+        { id: 'tired', text: 'Yorgun', effect: { speed: -0.10 } },
+        { id: 'energetic', text: 'Enerjik', effect: { speed: 0.15 } }
+    ];
+
+    // Season Effects Helper
+    function getSeasonalPriceMultiplier(materialType: MaterialType): number {
+        if (currentSeason.value === Season.WINTER) {
+            // Winter: Stone materials +30% (roads closed)
+            if (materialType === MaterialType.LIMESTONE ||
+                materialType === MaterialType.MARBLE_PENTELIC ||
+                materialType === MaterialType.BASALT) {
+                return 1.30;
+            }
+        }
+        return 1.0; // No effect for other seasons/materials
+    }
+
+    function assignDailyStates() {
+        state.value.workers.forEach(worker => {
+            // Random state
+            const random = Math.random();
+            if (random < 0.6) {
+                worker.dailyState = DAILY_STATES[0]; // Normal
+            } else {
+                const stateIndex = 1 + Math.floor(Math.random() * (DAILY_STATES.length - 1));
+                worker.dailyState = DAILY_STATES[stateIndex];
+            }
+        });
+        addNotification('Yeni Gün', 'İşçiler iş başı yaptı.', 'info');
+    }
 
     // Actions
     function addNotification(title: string, message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') {
@@ -652,9 +698,24 @@ export const useGameStore = defineStore('game', () => {
     }
 
     function tickTime(minutes: number) {
-        const previousDay = Math.floor(state.value.gameTime / 1440);
+        const previousTime = state.value.gameTime;
         state.value.gameTime += minutes;
+
+        const previousDay = Math.floor(previousTime / 1440);
         const currentDay = Math.floor(state.value.gameTime / 1440);
+
+        const previousHour = Math.floor((previousTime % 1440) / 60);
+        const currentHour = Math.floor((state.value.gameTime % 1440) / 60);
+
+        // Check for 06:00 (Start of Work)
+        if (previousHour < 6 && currentHour >= 6) {
+            assignDailyStates();
+        }
+
+        // Check for 20:00 (End of Work)
+        if (previousHour < 20 && currentHour >= 20) {
+            addNotification('Mesai Bitti', 'İşçiler dinlenmeye çekildi.', 'info');
+        }
 
         state.value.lastSaveTime = Date.now();
 
@@ -748,7 +809,10 @@ export const useGameStore = defineStore('game', () => {
                                 if (currentAmount < threshold) {
                                     const amountToBuy = threshold - currentAmount;
                                     const material = MATERIALS[materialType];
-                                    const price = material.basePrice;
+                                    let price = material.basePrice;
+
+                                    // Apply seasonal price multiplier
+                                    price = Math.floor(price * getSeasonalPriceMultiplier(materialType));
 
                                     // Apply market discount
                                     const discountedPrice = Math.floor(price * (1 - marketDiscount.value));
@@ -798,6 +862,10 @@ export const useGameStore = defineStore('game', () => {
         addMessage,
         markMessageRead,
         buyTool,
+        currentDay,
+        currentHour,
+        currentSeason,
+        isDaytime,
         equipTool,
         unequipTool,
         startResearch,

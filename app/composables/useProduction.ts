@@ -34,6 +34,16 @@ export const useProduction = () => {
             // Add Rank Bonus (Global)
             workerPower += gameStore.productionSpeedBonus;
 
+            // Apply Daily State Effects
+            if (worker.dailyState?.effect.speed) {
+                workerPower *= (1 + worker.dailyState.effect.speed);
+            }
+
+            // Apply Winter Speed Penalty (-10%)
+            if (gameStore.currentSeason === 'winter') {
+                workerPower *= 0.90;
+            }
+
             totalPower += workerPower;
         });
 
@@ -76,6 +86,11 @@ export const useProduction = () => {
     }
 
     function processProductionTick(task: ProductionTask) {
+        // Check if it's daytime (06:00 - 20:00)
+        if (!gameStore.isDaytime) {
+            return; // Production stops at night
+        }
+
         // Calculate effective speed based on workers
         // We can recalculate or store it. Recalculating is safer if workers change (though they shouldn't while working)
 
