@@ -39,12 +39,49 @@
 
         <!-- Reputation -->
         <div @click="showReputationModal = true" class="cursor-pointer hover:bg-stone-700/50 p-1 rounded transition-colors text-right">
-          <div class="text-xs text-stone-500 uppercase tracking-widest">{{ t.common.reputation }}</div>
+          <div class="text-xs text-stone-500 uppercase tracking-widest">{{ getRankTitle(gameStore.state.currentRankIndex + 1) }}</div>
           <div class="text-2xl font-mono text-purple-400">{{ formatNumber(gameStore.state.reputation) }}</div>
         </div>
       </div>
 
-      <!-- ... (Reputation Modal) ... -->
+      <!-- Reputation Modal -->
+      <div v-if="showReputationModal" class="absolute inset-0 bg-stone-900/95 z-30 flex flex-col items-center justify-center p-4">
+        <div class="bg-stone-800 border border-stone-600 rounded p-6 w-full max-w-md relative">
+          <button @click="showReputationModal = false" class="absolute top-2 right-2 text-stone-400 hover:text-stone-200">✕</button>
+          
+          <h3 class="text-xl font-serif text-purple-400 mb-1 text-center">{{ getRankTitle(gameStore.state.currentRankIndex + 1) }}</h3>
+          <div class="text-center text-stone-400 text-sm mb-6">{{ t.common.reputation }}: {{ formatNumber(gameStore.state.reputation) }}</div>
+          
+          <div v-if="gameStore.nextRank" class="space-y-4">
+            <div class="text-sm text-stone-300 flex justify-between">
+              <span>{{ t.management.nextRank }}: {{ getRankTitle(gameStore.state.currentRankIndex + 2) }}</span>
+              <span>{{ formatNumber(gameStore.nextRank.minReputation) }}</span>
+            </div>
+            
+            <div class="w-full bg-stone-900 h-4 rounded-full overflow-hidden border border-stone-700 relative">
+               <div 
+                 class="h-full bg-purple-600 transition-all duration-500"
+                 :style="{ width: `${calculateRankProgress()}%` }"
+               ></div>
+               <div class="absolute inset-0 flex items-center justify-center text-[10px] font-mono text-white drop-shadow-md">
+                 %{{ Math.floor(calculateRankProgress()) }}
+               </div>
+            </div>
+            
+            <div class="mt-4 p-3 bg-stone-900/50 rounded border border-stone-700">
+                <div class="text-xs text-stone-500 uppercase tracking-widest mb-2">{{ t.management.nextRankUnlocks }}</div>
+                <ul class="text-sm text-stone-300 space-y-1">
+                    <li v-for="unlock in gameStore.nextRank.unlocks" :key="unlock" class="flex items-center gap-2">
+                        <span class="text-amber-500">🔓</span> {{ unlock }}
+                    </li>
+                </ul>
+            </div>
+          </div>
+          <div v-else class="text-center text-amber-500 font-bold mt-4">
+              {{ t.management.maxRankReached }}
+          </div>
+        </div>
+      </div>
 
       <!-- Market Tab -->
       <div v-if="activeTab === 'market'" class="space-y-4">

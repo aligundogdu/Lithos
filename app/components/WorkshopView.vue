@@ -113,11 +113,11 @@
               :style="{ width: `${getStageProgress(task)}%` }"
             ></div>
           </div>
-          <div class="flex justify-between mt-1 text-xs text-stone-500">
-            <span>%{{ Math.floor(task.progress) }}</span>
-            <span>{{ Math.ceil(task.totalDuration - (task.totalDuration * task.progress / 100)) }} {{ t.workshop.minutesLeft }}</span>
+            <div class="text-xs text-stone-400 mt-1 flex justify-between">
+              <span>{{ t.status[task.status] }}</span>
+              <span>{{ formatDuration(Math.ceil(task.totalDuration - (task.progress / 100 * task.totalDuration))) }} {{ t.common.remaining }}</span>
+            </div>
           </div>
-        </div>
       </div>
     </div>
   </div>
@@ -133,7 +133,7 @@ import { useTranslation } from '~/composables/useTranslation';
 import { useMaterialTranslation } from '~/composables/useMaterialTranslation';
 import { useWorkerTranslation } from '~/composables/useWorkerTranslation';
 import LanguageSwitcher from '~/components/LanguageSwitcher.vue';
-import { formatNumber } from '~/utils/formatters';
+import { formatNumber, formatDuration } from '~/utils/formatters';
 
 const gameStore = useGameStore();
 const { t } = useTranslation();

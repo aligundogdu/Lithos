@@ -8,7 +8,7 @@ export const useGameTime = () => {
     const { generateOrder, checkOrderExpiry } = useOrders();
     const { processProductionTick } = useProduction();
 
-    const GAME_MINUTES_PER_REAL_SECOND = 24; // 1 Real Minute = 1 Game Day (1440 mins) -> 60s = 1440m -> 1s = 24m
+    const GAME_MINUTES_PER_REAL_SECOND = 12; // 1 Real Minute = 0.5 Game Day (720 mins) -> 120s = 1440m -> 1s = 12m
 
     // Game Loop
     const { pause, resume, isActive } = useIntervalFn(() => {

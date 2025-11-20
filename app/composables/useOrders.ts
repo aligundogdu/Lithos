@@ -1,5 +1,5 @@
 import { useGameStore } from '~/stores/game';
-import { MaterialType, type Order } from '~/types';
+import { MaterialType, type Order, ProductType } from '~/types';
 import { MATERIALS } from '~/constants/materials';
 
 export const useOrders = () => {
@@ -23,9 +23,15 @@ export const useOrders = () => {
         const difficulty = material.hardness * (0.8 + Math.random() * 0.4);
 
         // Reward calculation
-        // Base Price * 2 + Reputation Bonus
-        const reputationMultiplier = 1 + (gameStore.state.reputation / 100);
-        const reward = Math.ceil(material.basePrice * 2 * difficulty * reputationMultiplier);
+        // Logarithmic Reputation Bonus: 1 + log10(Reputation) * 0.2
+        // This prevents prices from exploding at high reputation
+        const reputationMultiplier = 1 + (Math.log10(Math.max(10, gameStore.state.reputation)) * 0.2);
+
+        // Base Reward
+        let reward = Math.ceil(material.basePrice * 2 * difficulty * reputationMultiplier);
+
+        // Soft Cap for MVP to avoid game breaking numbers
+        reward = Math.min(50000, reward);
 
         const id = Math.random().toString(36).substring(2, 9);
 
@@ -36,7 +42,9 @@ export const useOrders = () => {
             reward,
             reputationReward: Math.ceil(material.prestige * difficulty),
             deadline: Math.floor(gameStore.state.gameTime / 1440) + 7 + Math.floor(Math.random() * 7), // 7-14 days from now
-            createdAt: Math.floor(gameStore.state.gameTime / 1440)
+            createdAt: Math.floor(gameStore.state.gameTime / 1440),
+            productId: 'random_product', // Placeholder
+            productType: ProductType.STATUE // Placeholder
         };
 
         gameStore.addOrder(order);

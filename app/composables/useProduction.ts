@@ -2,6 +2,7 @@ import { useGameStore } from '~/stores/game';
 import { MATERIALS } from '~/constants/materials';
 import { TOOLS } from '~/constants/tools';
 import { type Worker, WorkerType, type ProductionTask, MaterialType } from '~/types';
+import { formatNumber } from '~/utils/formatters';
 
 export const useProduction = () => {
     const gameStore = useGameStore();
@@ -47,8 +48,8 @@ export const useProduction = () => {
             totalPower += workerPower;
         });
 
-        // Base duration in minutes (Hardness * 60)
-        const baseDuration = material.hardness * 60;
+        // Base duration in minutes (Hardness * 120)
+        const baseDuration = material.hardness * 120;
 
         // Duration = Base / Total Power
         return Math.ceil(baseDuration / totalPower);
@@ -157,9 +158,25 @@ export const useProduction = () => {
                     if (completedTask && completedTask.orderId) {
                         const order = gameStore.state.activeOrders.find(o => o.id === completedTask.orderId);
                         if (order) {
-                            gameStore.addMoney(order.reward);
+                            // Tip System
+                            // Base chance 10% + (Reputation / 1000)%
+                            const tipChance = 0.10 + (gameStore.state.reputation / 100000);
+                            let tipAmount = 0;
+
+                            if (Math.random() < tipChance) {
+                                // Tip is 10-30% of order value
+                                tipAmount = Math.floor(order.reward * (0.1 + Math.random() * 0.2));
+                            }
+
+                            gameStore.addMoney(order.reward + tipAmount);
                             gameStore.state.reputation += order.reputationReward;
                             gameStore.completeOrder(order.id);
+
+                            if (tipAmount > 0) {
+                                gameStore.addNotification('Sipariş Tamamlandı!', `+${formatNumber(order.reward)} D. (+${formatNumber(tipAmount)} D. Bahşiş)`, 'success');
+                            } else {
+                                gameStore.addNotification('Sipariş Tamamlandı!', `+${formatNumber(order.reward)} D.`, 'success');
+                            }
                         }
                     }
                     return;
@@ -196,9 +213,23 @@ export const useProduction = () => {
                         if (completedTask && completedTask.orderId) {
                             const order = gameStore.state.activeOrders.find(o => o.id === completedTask.orderId);
                             if (order) {
-                                gameStore.addMoney(order.reward);
+                                // Tip System (Lower chance for apprentice)
+                                const tipChance = 0.05 + (gameStore.state.reputation / 100000);
+                                let tipAmount = 0;
+
+                                if (Math.random() < tipChance) {
+                                    tipAmount = Math.floor(order.reward * (0.05 + Math.random() * 0.1));
+                                }
+
+                                gameStore.addMoney(order.reward + tipAmount);
                                 gameStore.state.reputation += order.reputationReward;
                                 gameStore.completeOrder(order.id);
+
+                                if (tipAmount > 0) {
+                                    gameStore.addNotification('Sipariş Tamamlandı!', `+${formatNumber(order.reward)} D. (+${formatNumber(tipAmount)} D. Bahşiş)`, 'success');
+                                } else {
+                                    gameStore.addNotification('Sipariş Tamamlandı!', `+${formatNumber(order.reward)} D.`, 'success');
+                                }
                             }
                         }
                         gameStore.addNotification('Şanslı Geçti!', 'Çırak kontrolünden geçti ama riskli bir üretimdi.', 'warning');
@@ -248,17 +279,6 @@ export const useProduction = () => {
                 task.currentStage = 'inspection';
                 task.progress = 66.66; // Jump to inspection stage
                 gameStore.addNotification('Detaylandırma Atlandı!', 'Çırak/Usta olmadığı için detaylandırma atlandı. Risk arttı!', 'warning');
-                return;
-            } else if (task.currentStage === 'inspection') {
-                // No master for inspection - wait
-                const lastWarningKey = `stage_warning_${task.id}`;
-                const lastWarning = (gameStore.state as any)[lastWarningKey] || 0;
-                const timeSinceWarning = gameStore.state.gameTime - lastWarning;
-
-                if (timeSinceWarning > 60) {
-                    gameStore.addNotification('Kalite Kontrol Bekliyor', 'Usta gerekiyor!', 'warning');
-                    (gameStore.state as any)[lastWarningKey] = gameStore.state.gameTime;
-                }
                 return;
             }
             return; // No workers can contribute to this stage
