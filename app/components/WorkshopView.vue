@@ -50,18 +50,19 @@
         <div v-if="gameStore.state.workers.length === 0" class="text-stone-500 italic">
           {{ t.workshop.noWorkers }}
         </div>
-        <ul v-else class="space-y-2">
-          <li v-for="worker in gameStore.state.workers" :key="worker.id" class="flex justify-between items-center bg-stone-800 p-2 rounded">
-            <div class="flex items-center gap-3">
-              <div v-html="AvatarGenerator.generate(worker.name)" class="w-10 h-10 rounded overflow-hidden shrink-0 border border-stone-600"></div>
-              <div>
-                <div class="text-stone-200 font-bold">{{ worker.name }}</div>
-                <div class="text-xs text-stone-500 capitalize">{{ getWorkerTypeName(worker.type) }}</div>
-              </div>
+        <div v-else class="grid grid-cols-4 gap-2">
+          <div v-for="worker in gameStore.state.workers" :key="worker.id" class="bg-stone-800 p-2 rounded flex flex-col items-center text-center group relative hover:bg-stone-700 transition-colors cursor-default border border-stone-700 hover:border-stone-500">
+            <div v-html="AvatarGenerator.generate(worker.name)" class="w-10 h-10 rounded overflow-hidden border border-stone-600 mb-1 shadow-sm"></div>
+            <div class="text-stone-200 font-bold text-[10px] truncate w-full">{{ worker.name }}</div>
+            
+            <!-- Tooltip for details -->
+            <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-stone-900 text-stone-200 text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 border border-stone-600 shadow-xl">
+              <div class="font-bold text-amber-500">{{ worker.name }}</div>
+              <div class="text-[10px] capitalize">{{ getWorkerTypeName(worker.type) }}</div>
+              <div class="text-[10px] font-mono">{{ t.common.skill }}: {{ worker.skill }}</div>
             </div>
-            <div class="text-xs font-mono text-stone-400">{{ t.common.skill }}: {{ worker.skill }}</div>
-          </li>
-        </ul>
+          </div>
+        </div>
       </div>
     </div>
 
