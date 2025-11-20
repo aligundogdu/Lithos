@@ -91,97 +91,259 @@ export const useProduction = () => {
             return; // Production stops at night
         }
 
-        // Calculate effective speed based on workers
-        // We can recalculate or store it. Recalculating is safer if workers change (though they shouldn't while working)
-
-        // Simple progress: 1 tick = 1 minute.
-        // We need to know the total duration to calculate percentage increase.
-        // task.totalDuration is in minutes.
-
         if (task.status !== 'active' && task.status !== 'pending') return;
         if (task.status === 'pending') task.status = 'active';
 
-        // Increment duration
-        // task.currentDuration += 1; // This is done in store.updateTaskProgress
+        // Multi-Stage Production Logic
+        const workers = gameStore.state.workers.filter(w => task.assignedWorkers.includes(w.id));
 
-        // Calculate percentage delta
-        // 1 minute / totalDuration * 100
-        const progressDelta = (1 / task.totalDuration) * 100;
+        // Determine which workers can contribute to current stage
+        let activeWorkers: Worker[] = [];
 
-        gameStore.updateTaskProgress(task.id, progressDelta);
+        if (task.currentStage === 'roughing') {
+            // Roughing: Slaves and Apprentices (strength-based)
+            activeWorkers = workers.filter(w => w.type === 'slave' || w.type === 'apprentice');
+        } else if (task.currentStage === 'detailing') {
+            // Detailing: Apprentices and Masters (skill-based)
+            activeWorkers = workers.filter(w => w.type === 'apprentice' || w.type === 'master');
+        } else if (task.currentStage === 'inspection') {
+            // Inspection: Check if master is available
+            const master = workers.find(w => w.type === 'master');
 
-        // Award XP to workers (Organic Progression)
-        task.assignedWorkers.forEach(workerId => {
-            const worker = gameStore.state.workers.find(w => w.id === workerId);
-            if (worker) {
-                // Base XP + Random Variance
-                let xpGain = 0.1 + (Math.random() * 0.05);
+            // Get material info for difficulty adjustment
+            const material = MATERIALS[task.materialType];
+            const materialDifficulty = material.brittleness; // 0.1 (easy) to 0.5 (hard)
 
-                // Tool Multiplier
-                if (worker.equippedToolIds && worker.equippedToolIds.length > 0) {
-                    // Simple bonus: 10% more XP per tool
-                    xpGain *= (1 + (worker.equippedToolIds.length * 0.1));
+            // Use task's calculated risk (already considers material, workers, tools)
+            const taskRisk = task.risk;
+
+            // Reputation bonus: Higher reputation = better quality control
+            // Every 100 reputation = +2% success chance
+            const reputationBonus = Math.min(0.20, (gameStore.state.reputation / 100) * 0.02);
+
+            // Team bonus: More workers + higher average skill = better quality
+            const teamSize = workers.length;
+            const averageSkill = workers.reduce((sum, w) => sum + w.skill, 0) / teamSize;
+            const teamBonus = Math.min(0.10, (averageSkill * 0.01) + (teamSize * 0.02));
+            if (master) {
+                // Master available - perform quality control
+                const skillBonus = master.skill * 0.05; // 5% per skill point
+
+                // Base success rate depends on material difficulty
+                // Easy materials (clay, rubble): 85% base
+                // Hard materials (marble): 70% base
+                let baseSuccess = 0.85 - (materialDifficulty * 0.30); // 0.85 for clay, 0.70 for marble
+
+                let successChance = baseSuccess + skillBonus + reputationBonus;
+
+                // Check for quality tools (polishing cloth, etc.)
+                if (master.equippedToolIds) {
+                    master.equippedToolIds.forEach(toolId => {
+                        const tool = TOOLS[toolId];
+                        if (tool && tool.effect.type === 'quality') {
+                            successChance += tool.effect.value;
+                        }
+                    });
                 }
 
-                // Apply XP
-                worker.experience += xpGain;
-                worker.lastWorkedAt = gameStore.state.gameTime;
+                // Apply task risk as a penalty
+                successChance = successChance * (1 - taskRisk * 0.5); // High risk reduces success
 
-                // Check Level Up
-                // Formula: Level * 100 XP required for next level
-                const xpRequired = worker.level * 100;
-                if (worker.experience >= xpRequired) {
-                    worker.level++;
-                    worker.experience -= xpRequired; // Carry over excess XP? Or reset? Let's carry over.
-                    // Actually, standard RPG is cumulative or reset. Let's do reset for simple "level * 100" formula.
-                    // Wait, if I subtract, then level 2 needs 200 XP.
+                const roll = Math.random();
 
-                    // Efficiency Boost
-                    worker.skill += 1; // Permanent skill increase
-                    worker.baseSkill += 1; // Update base skill too
-
-                    gameStore.addNotification('Seviye Atladı!', `${worker.name} ${worker.level}. seviyeye ulaştı! Verimliliği arttı.`, 'success');
-
-                    // Wage Negotiation Trigger for Masters (Level 5+)
-                    if (worker.type === 'master' && worker.level >= 5) {
-                        worker.negotiationPending = true;
-                        gameStore.addNotification('Zam Talebi', `${worker.name} maaş zammı görüşmek istiyor.`, 'warning');
+                if (roll < successChance) {
+                    // ✅ Success
+                    const completedTask = gameStore.completeTask(task.id);
+                    if (completedTask && completedTask.orderId) {
+                        const order = gameStore.state.activeOrders.find(o => o.id === completedTask.orderId);
+                        if (order) {
+                            gameStore.addMoney(order.reward);
+                            gameStore.state.reputation += order.reputationReward;
+                            gameStore.completeOrder(order.id);
+                        }
                     }
+                    return;
+                } else if (roll < successChance + 0.15) {
+                    // ⚠️ Minor Flaw
+                    task.currentStage = 'detailing';
+                    task.progress = 53.33;
+                    gameStore.addNotification('Kusurlu Ürün', 'Kalite kontrolden geçemedi. Düzeltme gerekiyor.', 'warning');
+                    return;
+                } else {
+                    // ❌ Critical Failure
+                    gameStore.failTask(task.id);
+                    gameStore.addMaterial('rubble' as any, 1);
+                    gameStore.addNotification('ÜRETİM HATASI!', 'Ürün kırıldı ve moloza dönüştü.', 'error');
+                    return;
                 }
-            }
-        });
+            } else {
+                // No master - auto-pass but with risk-based success
+                const apprentice = workers.find(w => w.type === 'apprentice');
 
-        // Check for completion
-        if (task.progress >= 100) {
-            const completedTask = gameStore.completeTask(task.id);
-            if (completedTask) {
-                // Handle Rewards
-                if (completedTask.orderId) {
-                    // Find the order to get reward details? 
-                    // Actually order might be gone if we didn't link it properly or if we just stored orderId.
-                    // But we have activeOrders in store.
-                    // Wait, if we are fulfilling an order, we should find it in activeOrders.
+                if (apprentice) {
+                    // Apprentice: Base success depends on material + reputation
+                    let baseSuccess = 0.60 - (materialDifficulty * 0.40); // 60% for clay, 40% for marble
+                    const skillBonus = apprentice.skill * 0.02;
+                    let successChance = baseSuccess + skillBonus + reputationBonus;
 
-                    const order = gameStore.state.activeOrders.find(o => o.id === completedTask.orderId);
-                    if (order) {
-                        gameStore.addMoney(order.reward);
-                        gameStore.state.reputation += order.reputationReward;
-                        gameStore.completeOrder(order.id);
-                        // Notify user? (Toast or log)
-                        console.log(`Order completed! Earned ${order.reward} money.`);
+                    // Apply task risk
+                    successChance = successChance * (1 - taskRisk * 0.6);
+
+                    const roll = Math.random();
+
+                    if (roll < successChance) {
+                        const completedTask = gameStore.completeTask(task.id);
+                        if (completedTask && completedTask.orderId) {
+                            const order = gameStore.state.activeOrders.find(o => o.id === completedTask.orderId);
+                            if (order) {
+                                gameStore.addMoney(order.reward);
+                                gameStore.state.reputation += order.reputationReward;
+                                gameStore.completeOrder(order.id);
+                            }
+                        }
+                        gameStore.addNotification('Şanslı Geçti!', 'Çırak kontrolünden geçti ama riskli bir üretimdi.', 'warning');
+                        return;
+                    } else {
+                        gameStore.failTask(task.id);
+                        gameStore.addMaterial('rubble' as any, 1);
+                        gameStore.addNotification('ÜRETİM HATASI!', 'Çırak kontrolü yetersiz kaldı. Ürün kırıldı.', 'error');
+                        return;
                     }
                 } else {
-                    // Stock production
-                    // Add finished good to inventory? 
-                    // For now, just sell it immediately or add to a "Finished Goods" inventory.
-                    // MVP: Sell immediately for base price.
-                    const material = MATERIALS[completedTask.materialType];
-                    const sellPrice = Math.floor(material.basePrice * 1.5); // Value added
-                    gameStore.addMoney(sellPrice);
-                    console.log(`Stock item sold for ${sellPrice}.`);
+                    // Only slaves - very material-dependent
+                    let baseSuccess = 0.50 - (materialDifficulty * 0.60); // 50% for clay, 20% for marble
+                    let successChance = baseSuccess + reputationBonus;
+
+                    // Apply task risk heavily
+                    successChance = successChance * (1 - taskRisk * 0.8);
+
+                    const roll = Math.random();
+                    if (roll < successChance) {
+                        const completedTask = gameStore.completeTask(task.id);
+                        if (completedTask && completedTask.orderId) {
+                            const order = gameStore.state.activeOrders.find(o => o.id === completedTask.orderId);
+                            if (order) {
+                                gameStore.addMoney(order.reward);
+                                gameStore.state.reputation += order.reputationReward;
+                                gameStore.completeOrder(order.id);
+                            }
+                        }
+                        gameStore.addNotification('Mucize!', 'Köleler şans eseri başardı!', 'success');
+                        return;
+                    } else {
+                        gameStore.failTask(task.id);
+                        gameStore.addMaterial('rubble' as any, 1);
+                        gameStore.addNotification('ÜRETİM HATASI!', 'Kalite kontrol olmadan ürün başarısız oldu.', 'error');
+                        return;
+                    }
                 }
             }
         }
+
+        if (activeWorkers.length === 0) {
+            // No workers for this stage
+            if (task.currentStage === 'detailing') {
+                // Skip detailing if no apprentices/masters - go straight to inspection
+                // But this increases risk significantly!
+                task.currentStage = 'inspection';
+                task.progress = 66.66; // Jump to inspection stage
+                gameStore.addNotification('Detaylandırma Atlandı!', 'Çırak/Usta olmadığı için detaylandırma atlandı. Risk arttı!', 'warning');
+                return;
+            } else if (task.currentStage === 'inspection') {
+                // No master for inspection - wait
+                const lastWarningKey = `stage_warning_${task.id}`;
+                const lastWarning = (gameStore.state as any)[lastWarningKey] || 0;
+                const timeSinceWarning = gameStore.state.gameTime - lastWarning;
+
+                if (timeSinceWarning > 60) {
+                    gameStore.addNotification('Kalite Kontrol Bekliyor', 'Usta gerekiyor!', 'warning');
+                    (gameStore.state as any)[lastWarningKey] = gameStore.state.gameTime;
+                }
+                return;
+            }
+            return; // No workers can contribute to this stage
+        }
+
+        // Calculate progress for current stage
+        let totalPower = 0;
+        activeWorkers.forEach(worker => {
+            let workerPower = 1;
+            workerPower += (worker.skill * 0.1);
+
+            // Tool bonuses
+            if (worker.equippedToolIds) {
+                worker.equippedToolIds.forEach(toolId => {
+                    const tool = TOOLS[toolId];
+                    if (tool && tool.effect.type === 'speed') {
+                        workerPower += tool.effect.value;
+                    }
+                });
+            }
+
+            // Rank bonus
+            workerPower += gameStore.productionSpeedBonus;
+
+            // Daily state effects
+            if (worker.dailyState?.effect.speed) {
+                workerPower *= (1 + worker.dailyState.effect.speed);
+            }
+
+            // Winter penalty
+            if (gameStore.currentSeason === 'winter') {
+                workerPower *= 0.90;
+            }
+
+            totalPower += workerPower;
+        });
+
+        // Calculate progress for current stage
+        // Each stage occupies a specific range: 0-33%, 33-66%, 66-100%
+        const stageRanges = {
+            roughing: { min: 0, max: 33.33 },
+            detailing: { min: 33.33, max: 66.66 },
+            inspection: { min: 66.66, max: 100 }
+        };
+
+        const currentRange = stageRanges[task.currentStage];
+        const progressDelta = (totalPower / task.totalDuration) * 100;
+
+        // Add progress but cap at current stage max
+        task.progress = Math.min(currentRange.max, task.progress + progressDelta);
+
+        // Check stage transitions
+        if (task.currentStage === 'roughing' && task.progress >= currentRange.max) {
+            task.currentStage = 'detailing';
+            gameStore.addNotification('Aşama Geçişi', 'Kaba inşaat tamamlandı. Detaylandırma başlıyor.', 'info');
+        } else if (task.currentStage === 'detailing' && task.progress >= currentRange.max) {
+            task.currentStage = 'inspection';
+            gameStore.addNotification('Kalite Kontrol', 'Detaylandırma tamamlandı. Usta kontrolü bekleniyor.', 'info');
+        }
+
+        // Award XP to active workers
+        activeWorkers.forEach(worker => {
+            let xpGain = 0.1 + (Math.random() * 0.05);
+            if (worker.equippedToolIds && worker.equippedToolIds.length > 0) {
+                xpGain *= (1 + (worker.equippedToolIds.length * 0.1));
+            }
+
+            worker.experience += xpGain;
+            worker.lastWorkedAt = gameStore.state.gameTime;
+
+            const xpRequired = worker.level * 100;
+            if (worker.experience >= xpRequired) {
+                worker.level++;
+                worker.experience -= xpRequired;
+                worker.skill += 1;
+                worker.baseSkill += 1;
+
+                gameStore.addNotification('Seviye Atladı!', `${worker.name} ${worker.level}. seviyeye ulaştı!`, 'success');
+
+                if (worker.type === 'master' && worker.level >= 5) {
+                    worker.negotiationPending = true;
+                    gameStore.addNotification('Zam Talebi', `${worker.name} maaş zammı görüşmek istiyor.`, 'warning');
+                }
+            }
+        });
     }
 
     return {

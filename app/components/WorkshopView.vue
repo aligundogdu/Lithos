@@ -66,10 +66,20 @@
               <div v-html="ProductVisualizer.generate(task.productType, task.materialType)" class="w-12 h-12 rounded shrink-0 bg-stone-900/50 border border-stone-600"></div>
               <div>
                 <span class="text-stone-300 font-bold">{{ getMaterialName(task.materialType) }} {{ PRODUCTS[task.productId]?.name || task.productType }}</span>
-                <div class="text-xs text-stone-500">
+                <div class="text-xs text-stone-500 flex items-center gap-2">
                    {{ t.common.workers }}: {{ task.assignedWorkers.length }} | {{ t.common.risk }}: %{{ (task.risk * 100).toFixed(1) }}
+                   <span class="px-2 py-0.5 rounded text-xs font-bold" :class="{
+                     'bg-orange-900/50 text-orange-300': task.currentStage === 'roughing',
+                     'bg-blue-900/50 text-blue-300': task.currentStage === 'detailing',
+                     'bg-purple-900/50 text-purple-300': task.currentStage === 'inspection'
+                   }">
+                     {{ getStageLabel(task.currentStage) }}
+                   </span>
                 </div>
               </div>
+            </div>
+            <div class="text-xs text-stone-400">
+              Aşama {{ getStageNumber(task.currentStage) }}/3 - %{{ getStageProgress(task).toFixed(1) }}
             </div>
             <span :class="{
               'text-amber-500': task.status === 'active',
@@ -83,11 +93,11 @@
             <div 
               class="h-full transition-all duration-300" 
               :class="{
-                'bg-amber-600': task.status === 'active' || task.status === 'pending',
-                'bg-green-600': task.status === 'completed',
-                'bg-red-600': task.status === 'failed'
+                'bg-orange-600': task.currentStage === 'roughing',
+                'bg-blue-600': task.currentStage === 'detailing',
+                'bg-purple-600': task.currentStage === 'inspection'
               }"
-              :style="{ width: `${task.progress}%` }"
+              :style="{ width: `${getStageProgress(task)}%` }"
             ></div>
           </div>
           <div class="flex justify-between mt-1 text-xs text-stone-500">
@@ -115,4 +125,34 @@ const gameStore = useGameStore();
 const { t } = useTranslation();
 const { getMaterialName } = useMaterialTranslation();
 const { getWorkerTypeName } = useWorkerTranslation();
+
+// Helper functions for stage display
+function getStageProgress(task: any): number {
+  const stageRanges = {
+    roughing: { min: 0, max: 33.33 },
+    detailing: { min: 33.33, max: 66.66 },
+    inspection: { min: 66.66, max: 100 }
+  };
+  
+  const range = stageRanges[task.currentStage as keyof typeof stageRanges];
+  if (!range) return 0;
+  
+  // Normalize progress to 0-100 within current stage
+  const stageProgress = ((task.progress - range.min) / (range.max - range.min)) * 100;
+  return Math.max(0, Math.min(100, stageProgress));
+}
+
+function getStageNumber(stage: string): number {
+  const stages = { roughing: 1, detailing: 2, inspection: 3 };
+  return stages[stage as keyof typeof stages] || 1;
+}
+
+function getStageLabel(stage: string): string {
+  const labels = {
+    roughing: '🔨 Kaba İnşaat',
+    detailing: '✨ Detaylandırma',
+    inspection: '🔍 Kalite Kontrol'
+  };
+  return labels[stage as keyof typeof labels] || stage;
+}
 </script>

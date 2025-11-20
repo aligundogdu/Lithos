@@ -131,22 +131,67 @@ Yıl 4 mevsime ayrılır (Her mevsim 10 oyun günü).
 
 ## 🏭 Çok Aşamalı Üretim (Pipeline)
 
-Üretim artık tek bir ilerleme çubuğu değil, 3 aşamalı bir süreçtir.
+Üretim artık tek bir ilerleme çubuğu değil, 3 aşamalı bir süreçtir. Her aşama farklı işçi türleri gerektirir ve opsiyoneldir.
 
-### 1. Kaba İnşaat (Roughing)
+### 1. Kaba İnşaat (Roughing) - %0-33
 *   **Sorumlular:** Köleler ve Çıraklar.
-*   **Hız Faktörü:** İşçi Gücü (Strength).
+*   **Hız Faktörü:** İşçi Gücü (Strength) ve Skill.
+*   **Zorunlu:** Evet - Bu aşama atlanamaz.
 
-### 2. Detaylandırma (Detailing)
+### 2. Detaylandırma (Detailing) - %33-66
 *   **Sorumlular:** Çıraklar ve Ustalar.
 *   **Hız Faktörü:** İşçi Yeteneği (Skill).
+*   **Opsiyonel:** Eğer Çırak/Usta yoksa bu aşama **otomatik atlanır** ve direkt Kalite Kontrol'e geçilir.
+*   **Risk:** Atlandığında inspection başarı şansı düşer.
 
-### 3. Kalite Kontrol (Inspection)
-*   Ürün %100 olduğunda bir **Usta** tarafından kontrol edilmelidir.
+### 3. Kalite Kontrol (Inspection) - %66-100
+Ürün tamamlandığında **otomatik** kalite kontrolü yapılır. Başarı şansı şu faktörlere bağlıdır:
+
+**Başarı Formülü:**
+```
+Başarı = (Materyal Kolaylığı + Skill + İtibar + Tool) × (1 - Task Risk × Ceza)
+```
+
+#### Materyal Kolaylığı
+*   🟤 **Kil / Moloz**: %85 base (kolay işlenir)
+*   ⚪ **Kireçtaşı**: %80 base
+*   🔵 **Mermer / Bazalt**: %70 base (hassas malzeme)
+
+#### İtibar Bonusu
+*   Her **100 itibar** = +%2 başarı şansı
+*   Maksimum: +%20 (1000 itibar'da)
+*   **Mantık:** Yüksek itibar = daha iyi atölye standartları
+
+#### Task Risk Etkisi
+*   Üretim sırasında hesaplanan **risk değeri** başarıyı düşürür
+*   Düşük skill, kötü tool, zor materyal = yüksek risk = düşük başarı
+
+---
+
+#### Usta ile Kontrol (En İyi)
+*   **Base:** Materyal kolaylığı (%70-85)
+*   **Skill Bonusu:** Skill × %5
+*   **İtibar Bonusu:** İtibar/100 × %2 (max %20)
+*   **Quality Tool:** Cila bezi vb. ekstra bonus
+*   **Risk Cezası:** × (1 - Risk × 0.5)
 *   **Sonuçlar:**
-    *   ✅ **Başarılı:** Ürün teslim edilir.
-    *   ⚠️ **Kusurlu (Minor Flaw):** Ürün %80'e geri döner. Tekrar detaylandırılmalıdır. (Deadline riski!)
-    *   ❌ **Kritik Hata (Fail):** Ürün kırılır ve Moloza (Rubble) dönüşür.
+    *   ✅ **Başarılı:** Ürün teslim edilir
+    *   ⚠️ **Kusurlu (%15):** Detaylandırmanın %60'ına geri dön
+    *   ❌ **Hata:** Moloza dönüş
+
+#### Çırak ile Kontrol (Riskli)
+*   **Base:** Materyal kolaylığı - %25 (%40-60)
+*   **Skill Bonusu:** Skill × %2
+*   **İtibar Bonusu:** İtibar/100 × %2
+*   **Risk Cezası:** × (1 - Risk × 0.6)
+*   **Sonuç:** Başarılı veya moloz
+
+#### Sadece Köle (Çok Riskli)
+*   **Base:** Materyal kolaylığı - %35 (%20-50)
+*   **İtibar Bonusu:** İtibar/100 × %2
+*   **Risk Cezası:** × (1 - Risk × 0.8) - **Çok ağır ceza!**
+*   **Sonuç:** Başarılı veya moloz
+*   **Not:** Kil ile köle = ~%40-50 şans, Mermer ile = ~%10-15 şans
 
 ---
 

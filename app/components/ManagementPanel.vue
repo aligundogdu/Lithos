@@ -236,7 +236,7 @@
                      </span>
                   </div>
                   <!-- Daily State -->
-                  <div v-if="worker.dailyState && worker.dailyState.id !== 'normal'" class="text-xs mt-1 px-2 py-0.5 rounded bg-stone-900 border border-stone-700 inline-block">
+                  <div v-if="worker.dailyState" class="text-xs mt-1 px-2 py-0.5 rounded bg-stone-900 border border-stone-700 inline-block">
                       <span class="text-stone-400">{{ worker.dailyState.text }}</span>
                       <span v-if="worker.dailyState.effect.speed" :class="worker.dailyState.effect.speed > 0 ? 'text-green-400' : 'text-red-400'">
                           {{ worker.dailyState.effect.speed > 0 ? '+' : '' }}{{ worker.dailyState.effect.speed * 100 }}% Hız
@@ -886,7 +886,7 @@ function confirmProduction() {
     currentDuration: 0,
     risk: estimatedRisk.value,
     status: 'pending' as const,
-    currentStage: 'roughing'
+    currentStage: 'roughing' as const
   };
 
   if (gameStore.startProduction(task)) {
