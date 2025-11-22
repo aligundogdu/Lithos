@@ -2,11 +2,11 @@
   <div class="p-6 h-full overflow-y-auto">
     <header class="mb-8 flex justify-between items-start">
       <div>
-        <h1 class="text-3xl font-serif text-amber-500 mb-2">{{ t.game.title }}</h1>
+        <h1 class="text-3xl font-serif mb-2 transition-colors duration-500" :class="seasonalClasses.header">{{ t.game.title }}</h1>
         <div class="flex gap-4 text-sm text-stone-400">
           <span>{{ t.common.day }}: {{ gameStore.currentDay }}</span>
           <span>{{ t.common.hour }}: {{ gameStore.currentHour.toString().padStart(2, '0') }}:00</span>
-          <span class="capitalize text-amber-600 font-bold">
+          <span class="capitalize font-bold transition-colors duration-500" :class="seasonalClasses.header">
             {{ getSeasonEmoji(gameStore.currentSeason) }} {{ gameStore.currentSeason }}
           </span>
         </div>
@@ -16,14 +16,14 @@
 
     <!-- Visual Representation Area (Placeholder) -->
     <div class="grid grid-cols-2 gap-6 mb-8">
-      <div class="bg-stone-700/50 p-4 rounded border border-stone-600">
+      <div class="p-4 rounded border transition-all duration-500" :class="seasonalClasses.card">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-serif text-stone-300">{{ t.workshop.inventory }}</h2>
             <!-- Storage Bar -->
-            <div class="w-32 bg-stone-900 h-3 rounded-full overflow-hidden border border-stone-600 relative" :title="`${gameStore.currentStorageLoad} / ${gameStore.maxStorageCapacity} VU`">
+            <div class="w-32 bg-stone-900 h-3 rounded-full overflow-hidden border transition-colors duration-500 relative" :class="seasonalClasses.border" :title="`${gameStore.currentStorageLoad} / ${gameStore.maxStorageCapacity} VU`">
                 <div 
                 class="h-full transition-all duration-500"
-                :class="gameStore.storagePercentage > 90 ? 'bg-red-600' : 'bg-blue-600'"
+                :class="gameStore.storagePercentage > 90 ? 'bg-red-600' : seasonalClasses.progress"
                 :style="{ width: `${gameStore.storagePercentage}%` }"
                 ></div>
             </div>
@@ -47,7 +47,7 @@
         </div>
       </div>
 
-      <div class="bg-stone-700/50 p-4 rounded border border-stone-600">
+      <div class="p-4 rounded border transition-all duration-500" :class="seasonalClasses.card">
         <h2 class="text-xl font-serif text-stone-300 mb-4">{{ t.workshop.workers }}</h2>
         <div v-if="gameStore.state.workers.length === 0" class="text-stone-500 italic">
           {{ t.workshop.noWorkers }}
@@ -81,7 +81,7 @@
     </div>
 
     <!-- Active Productions -->
-    <div class="bg-stone-700/50 p-4 rounded border border-stone-600">
+    <div class="p-4 rounded border transition-all duration-500" :class="seasonalClasses.card">
       <h2 class="text-xl font-serif text-stone-300 mb-4">{{ t.workshop.productionLine }}</h2>
       <div v-if="gameStore.state.productionTasks.length === 0" class="text-stone-500 italic">
         {{ t.workshop.noProduction }}
@@ -139,6 +139,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useGameStore } from '~/stores/game';
 import { MATERIALS } from '~/constants/materials';
 import { PRODUCTS } from '~/constants/products';
@@ -147,6 +148,7 @@ import { ProductVisualizer } from '~/utils/productVisualizer';
 import { useTranslation } from '~/composables/useTranslation';
 import { useMaterialTranslation } from '~/composables/useMaterialTranslation';
 import { useWorkerTranslation } from '~/composables/useWorkerTranslation';
+import { useSeasonalColors } from '~/composables/useSeasonalColors';
 import LanguageSwitcher from '~/components/LanguageSwitcher.vue';
 import { formatNumber, formatDuration } from '~/utils/formatters';
 
@@ -154,6 +156,15 @@ const gameStore = useGameStore();
 const { t } = useTranslation();
 const { getMaterialName } = useMaterialTranslation();
 const { getWorkerTypeName } = useWorkerTranslation();
+
+// Seasonal colors
+const { getSeasonalClasses } = useSeasonalColors(gameStore.currentSeason);
+const seasonalClasses = computed(() => ({
+  header: getSeasonalClasses('header'),
+  card: getSeasonalClasses('card'),
+  border: getSeasonalClasses('border'),
+  progress: getSeasonalClasses('progress'),
+}));
 
 // Helper functions for stage display
 function getStageProgress(task: any): number {

@@ -11,9 +11,9 @@
         :key="tab.id"
         @click="activeTab = tab.id"
         :class="[
-          'flex-1 py-3 text-sm font-serif tracking-wider transition-colors',
+          'flex-1 py-3 text-sm font-serif tracking-wider transition-colors duration-500',
           activeTab === tab.id 
-            ? 'bg-stone-800 text-amber-500 border-b-2 border-amber-500' 
+            ? ['bg-stone-800 border-b-2', seasonalClasses.header, seasonalClasses.border] 
             : 'text-stone-500 hover:text-stone-300 hover:bg-stone-800/50'
         ]"
       >
@@ -24,11 +24,11 @@
     <!-- Content -->
     <div class="flex-1 overflow-y-auto p-4">
       <!-- Header Stats -->
-      <div class="mb-6 p-4 bg-stone-800 rounded border border-stone-700 flex justify-between items-center">
+      <div class="mb-6 p-4 rounded border transition-all duration-500 flex justify-between items-center" :class="seasonalClasses.card">
         <!-- Money -->
         <div>
           <div class="text-xs text-stone-500 uppercase tracking-widest">{{ t.common.money }}</div>
-          <div class="text-2xl font-mono text-amber-400">{{ formatNumber(gameStore.state.money) }} <span class="text-sm text-amber-600">D.</span></div>
+          <div class="text-2xl font-mono transition-colors duration-500" :class="seasonalClasses.header">{{ formatNumber(gameStore.state.money) }} <span class="text-sm" :class="seasonalClasses.header">D.</span></div>
         </div>
 
         <!-- Expenses -->
@@ -662,6 +662,7 @@ import { useWorkerTranslation } from '~/composables/useWorkerTranslation';
 import { useToolTranslation } from '~/composables/useToolTranslation';
 import { useResearchTranslation } from '~/composables/useResearchTranslation';
 import { useConsultantTranslation } from '~/composables/useConsultantTranslation';
+import { useSeasonalColors } from '~/composables/useSeasonalColors';
 
 import { MATERIALS } from '~/constants/materials';
 import { TOOLS } from '~/constants/tools';
@@ -692,6 +693,15 @@ const { getWorkerTypeName } = useWorkerTranslation();
 const { getToolName, getToolDescription } = useToolTranslation();
 const { getResearchName, getResearchDescription } = useResearchTranslation();
 const { getConsultantName, getConsultantDescription } = useConsultantTranslation();
+
+// Seasonal colors
+const { getSeasonalClasses } = useSeasonalColors(gameStore.currentSeason);
+const seasonalClasses = computed(() => ({
+  header: getSeasonalClasses('header'),
+  card: getSeasonalClasses('card'),
+  border: getSeasonalClasses('border'),
+  button: getSeasonalClasses('button'),
+}));
 
 const tabs = computed(() => [
   { id: 'market', label: t.value.tabs.market },
