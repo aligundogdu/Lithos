@@ -800,6 +800,41 @@ export const useGameStore = defineStore('game', () => {
         });
     }
 
+    function handleLoyaltyDecay() {
+        // Decay loyalty if idle for too long
+        const IDLE_THRESHOLD = 2880; // 2 days (2 * 1440 minutes)
+        const DECAY_RATE = 5; // -5 loyalty per day idle
+        const currentTime = state.value.gameTime;
+
+        state.value.workers.forEach(worker => {
+            if (worker.status === 'idle') {
+                const timeSinceLastWork = currentTime - worker.lastWorkedAt;
+
+                if (timeSinceLastWork > IDLE_THRESHOLD) {
+                    // Calculate target loyalty based on days idle
+                    const daysIdle = Math.floor(timeSinceLastWork / 1440);
+                    const targetLoyalty = Math.max(0, 100 - (daysIdle * DECAY_RATE));
+
+                    if (worker.loyalty > targetLoyalty) {
+                        const oldLoyalty = worker.loyalty;
+                        worker.loyalty = targetLoyalty;
+
+                        // Notifications at critical thresholds
+                        if (worker.loyalty <= 0) {
+                            // Worker leaves
+                            fireWorker(worker.id);
+                            addNotification(t.value.notifications.workerLeft, format(t.value.notifications.workerLeftDesc, worker.name), 'error');
+                        } else if (worker.loyalty <= 20 && oldLoyalty > 20) {
+                            addNotification(t.value.notifications.lowMotivation, format(t.value.notifications.lowMotivationDesc, worker.name), 'warning');
+                        } else if (worker.loyalty <= 50 && oldLoyalty > 50) {
+                            addNotification(t.value.notifications.motivationDropping, format(t.value.notifications.motivationDroppingDesc, worker.name), 'info');
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     function handleWageNegotiation(workerId: string, accepted: boolean) {
         const worker = state.value.workers.find(w => w.id === workerId);
         if (!worker) return;
@@ -948,7 +983,10 @@ export const useGameStore = defineStore('game', () => {
             // 3. Skill Decay Check (Daily)
             handleSkillDecay();
 
-            // 4. Consultant Daily Effects
+            // 4. Loyalty Decay Check (Daily)
+            handleLoyaltyDecay();
+
+            // 5. Consultant Daily Effects
             state.value.activeConsultantIds.forEach(id => {
                 const consultant = CONSULTANTS[id];
                 if (consultant) {

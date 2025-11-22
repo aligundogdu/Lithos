@@ -217,7 +217,11 @@ export const en = {
         productionComplete: 'Production Complete',
         productionCompleteDesc: 'Production of {0} completed successfully.',
         productionFailed: 'Production Failed',
-        productionFailedDesc: 'Production of {0} failed. Materials wasted.'
+        productionFailedDesc: 'Production of {0} failed. Materials wasted.',
+        lowMotivation: 'Low Motivation',
+        lowMotivationDesc: '{0} is very unhappy! May leave if not given work.',
+        motivationDropping: 'Motivation Dropping',
+        motivationDroppingDesc: '{0} is waiting for work.'
     },
 
     // Messages

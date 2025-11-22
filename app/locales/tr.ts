@@ -217,7 +217,11 @@ export const tr = {
         productionComplete: 'Üretim Tamamlandı',
         productionCompleteDesc: '{0} üretimi başarıyla tamamlandı.',
         productionFailed: 'Üretim Başarısız',
-        productionFailedDesc: '{0} üretimi başarısız oldu. Malzemeler ziyan oldu.'
+        productionFailedDesc: '{0} üretimi başarısız oldu. Malzemeler ziyan oldu.',
+        lowMotivation: 'Düşük Motivasyon',
+        lowMotivationDesc: '{0} çok mutsuz! İş vermezseniz ayrılabilir.',
+        motivationDropping: 'Motivasyon Düşüyor',
+        motivationDroppingDesc: '{0} iş bekliyor.'
     },
 
     // Messages

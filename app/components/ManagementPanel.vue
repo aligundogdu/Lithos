@@ -212,7 +212,11 @@
                   
                   <div class="flex gap-3 mt-1">
                      <div class="text-xs text-amber-500/80">{{ t.common.salary }}: {{ worker.salary }} D.</div>
-                     <div class="text-xs text-rose-400/80" title="Sadakat">♥ {{ worker.loyalty }}%</div>
+                     <div class="text-xs" :class="{
+                       'text-red-400': worker.loyalty <= 30,
+                       'text-yellow-400': worker.loyalty > 30 && worker.loyalty <= 60,
+                       'text-green-400': worker.loyalty > 60
+                     }" :title="`${t.common.loyalty}: ${worker.loyalty}%`">♥ {{ worker.loyalty }}%</div>
                   </div>
                 </div>
                 
