@@ -1,5 +1,6 @@
 import { useGameStore } from '~/stores/game';
 import { MATERIALS } from '~/constants/materials';
+import { PRODUCTS } from '~/constants/products';
 import { TOOLS } from '~/constants/tools';
 import { type Worker, WorkerType, type ProductionTask, MaterialType } from '~/types';
 import { formatNumber } from '~/utils/formatters';
@@ -87,6 +88,16 @@ export const useProduction = () => {
     }
 
     function processProductionTick(task: ProductionTask) {
+        // BUG FIX: Check if task is waiting for storage
+        if (task.status === 'pending_storage') {
+            const product = PRODUCTS[task.productId];
+            if (product && gameStore.currentStorageLoad + product.size <= gameStore.maxStorageCapacity) {
+                // Storage is now available, complete the task
+                gameStore.completeTask(task.id);
+            }
+            return; // Don't process further if waiting for storage
+        }
+
         // Check if it's daytime (06:00 - 20:00)
         if (!gameStore.isDaytime) {
             return; // Production stops at night
