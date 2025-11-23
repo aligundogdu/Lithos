@@ -47,7 +47,7 @@ const emit = defineEmits<{
 // Randomly select one of 15 splash images
 const randomSplashImage = computed(() => {
   const imageNumber = Math.floor(Math.random() * 15) + 1; // 1-15
-  return `/images/splash/${imageNumber}.png`;
+  return `/images/splash/${imageNumber}.webp`;
 });
 
 onMounted(() => {
