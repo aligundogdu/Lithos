@@ -2,15 +2,15 @@
   <Transition name="fade">
     <div v-if="isVisible" class="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-stone-950">
       <!-- Splash Image -->
-      <div class="relative w-full h-full flex items-center justify-center">
+      <div class="relative w-full h-full flex items-center justify-center p-4 sm:p-8">
         <img 
-          src="/images/splash.jpg" 
+          :src="randomSplashImage" 
           alt="Lithos" 
-          class="max-w-full max-h-full object-contain"
+          class="max-w-full max-h-full object-contain rounded-2xl shadow-2xl shadow-black/50"
         />
         
         <!-- Overlay Gradient -->
-        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-stone-950/80"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-stone-950/80 pointer-events-none"></div>
       </div>
       
       <!-- Loading Bar -->
@@ -35,7 +35,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 
 const isVisible = ref(true);
 const progress = ref(0);
@@ -43,6 +43,12 @@ const progress = ref(0);
 const emit = defineEmits<{
   complete: []
 }>();
+
+// Randomly select one of 15 splash images
+const randomSplashImage = computed(() => {
+  const imageNumber = Math.floor(Math.random() * 15) + 1; // 1-15
+  return `/images/splash/${imageNumber}.png`;
+});
 
 onMounted(() => {
   // Simulate loading progress

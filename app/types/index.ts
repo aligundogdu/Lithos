@@ -73,6 +73,7 @@ export interface Worker {
     level: number;
     loyalty: number; // 0-100
     lastWorkedAt: number; // Game time
+    lastRaiseDay: number; // Day when worker last received a raise
     baseSkill: number;
     negotiationPending?: boolean;
     dailyState?: DailyState;

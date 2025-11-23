@@ -578,8 +578,18 @@ export const useGameStore = defineStore('game', () => {
         // Deduct material
         if (removeMaterial(task.materialType, 1)) {
             state.value.productionTasks.push(task);
-            // Set workers to working
+            // Assign workers
             task.assignedWorkers.forEach(wid => setWorkerStatus(wid, 'working'));
+
+            // 5. TEAM WORK BONUS
+            if (task.assignedWorkers.length >= 2) {
+                task.assignedWorkers.forEach(wid => {
+                    const worker = state.value.workers.find(w => w.id === wid);
+                    if (worker) {
+                        worker.loyalty = Math.min(100, worker.loyalty + 2);
+                    }
+                });
+            }
             return true;
         }
         return false;
@@ -641,6 +651,16 @@ export const useGameStore = defineStore('game', () => {
                 }
 
                 task.status = 'completed';
+
+                // 1. SUCCESSFUL PRODUCTION BONUS
+                task.assignedWorkers.forEach(wid => {
+                    const worker = state.value.workers.find(w => w.id === wid);
+                    if (worker) {
+                        const bonus = task.risk > 0.5 ? 10 : 5;
+                        worker.loyalty = Math.min(100, worker.loyalty + bonus);
+                    }
+                });
+
                 // Free workers
                 task.assignedWorkers.forEach(wid => setWorkerStatus(wid, 'idle'));
 
@@ -835,6 +855,20 @@ export const useGameStore = defineStore('game', () => {
         });
     }
 
+    function handleLoyaltyBoost() {
+        // 2. REGULAR WORK BONUS
+        const REGULAR_WORK_THRESHOLD = 4320; // 3 days
+        const currentTime = state.value.gameTime;
+
+        state.value.workers.forEach(worker => {
+            const timeSinceLastWork = currentTime - worker.lastWorkedAt;
+
+            if (timeSinceLastWork < REGULAR_WORK_THRESHOLD) {
+                worker.loyalty = Math.min(100, worker.loyalty + 2);
+            }
+        });
+    }
+
     function handleWageNegotiation(workerId: string, accepted: boolean) {
         const worker = state.value.workers.find(w => w.id === workerId);
         if (!worker) return;
@@ -845,6 +879,13 @@ export const useGameStore = defineStore('game', () => {
             worker.salary = Math.ceil(worker.salary * 1.2);
             worker.loyalty = Math.min(100, worker.loyalty + 10);
             worker.skill += 0.5; // Bonus skill
+
+            // 3. ENHANCED WAGE NEGOTIATION
+            const daysSinceLastRaise = currentDay.value - worker.lastRaiseDay;
+            if (worker.lastRaiseDay > 0 && daysSinceLastRaise <= 35) {
+                worker.loyalty = Math.min(100, worker.loyalty + 5);
+            }
+            worker.lastRaiseDay = currentDay.value;
 
             addNotification(t.value.notifications.wageIncrease, format(t.value.notifications.raiseGivenDesc, worker.name, oldSalary, worker.salary), 'success');
         } else {
@@ -985,6 +1026,35 @@ export const useGameStore = defineStore('game', () => {
 
             // 4. Loyalty Decay Check (Daily)
             handleLoyaltyDecay();
+
+            // 4b. Loyalty Boost Check (Daily)
+            handleLoyaltyBoost();
+
+            // 6. REST DAYS (Every 7 days)
+            if (currentDay % 7 === 0) {
+                state.value.workers.forEach(worker => {
+                    if (worker.status === 'idle') {
+                        worker.loyalty = Math.min(100, worker.loyalty + 3);
+                    }
+                });
+            }
+
+            // 7. SPECIAL EVENTS (5% chance daily)
+            if (Math.random() < 0.05) {
+                const events = [
+                    'Festival',
+                    'Kutlama',
+                    'Pazar Günü'
+                ];
+                const event = events[Math.floor(Math.random() * events.length)];
+                const bonus = Math.floor(Math.random() * 6) + 5; // 5-10
+
+                state.value.workers.forEach(worker => {
+                    worker.loyalty = Math.min(100, worker.loyalty + bonus);
+                });
+
+                addNotification(event, `Atölyede ${event}! Tüm işçiler mutlu (+${bonus} sadakat).`, 'success');
+            }
 
             // 5. Consultant Daily Effects
             state.value.activeConsultantIds.forEach(id => {
