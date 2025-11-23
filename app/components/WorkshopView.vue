@@ -1,9 +1,9 @@
 <template>
-  <div class="p-6 h-full overflow-y-auto">
-    <header class="mb-8 flex justify-between items-start">
+  <div class="p-3 sm:p-4 md:p-6 h-full overflow-y-auto">
+    <header class="mb-4 md:mb-8 flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-4">
       <div>
-        <h1 class="text-3xl font-serif mb-2 transition-colors duration-500" :class="seasonalClasses.header">{{ t.game.title }}</h1>
-        <div class="flex gap-4 text-sm text-stone-400">
+        <h1 class="text-2xl sm:text-3xl font-serif mb-2 transition-colors duration-500" :class="seasonalClasses.header">{{ t.game.title }}</h1>
+        <div class="flex gap-2 sm:gap-4 text-xs sm:text-sm text-stone-400">
           <span>{{ t.common.day }}: {{ gameStore.currentDay }}</span>
           <span>{{ t.common.hour }}: {{ gameStore.currentHour.toString().padStart(2, '0') }}:00</span>
           <span class="capitalize font-bold transition-colors duration-500" :class="seasonalClasses.header">
@@ -15,7 +15,7 @@
     </header>
 
     <!-- Visual Representation Area (Placeholder) -->
-    <div class="grid grid-cols-2 gap-6 mb-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
       <div class="p-4 rounded border transition-all duration-500" :class="seasonalClasses.card">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-serif text-stone-300">{{ t.workshop.inventory }}</h2>
@@ -29,7 +29,7 @@
             </div>
         </div>
         
-        <div class="grid grid-cols-4 gap-2">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
            <div v-for="(amount, type) in gameStore.state.inventory" :key="type" class="bg-stone-800 p-2 rounded border border-stone-600 flex flex-col items-center text-center group relative hover:border-amber-500 transition-colors">
              <span class="capitalize text-stone-300 font-bold text-xs mb-0.5 truncate w-full">{{ getMaterialName(type) }}</span>
              <span class="font-mono text-amber-400 text-sm">{{ formatNumber(amount) }}</span>
@@ -52,7 +52,7 @@
         <div v-if="gameStore.state.workers.length === 0" class="text-stone-500 italic">
           {{ t.workshop.noWorkers }}
         </div>
-        <div v-else class="grid grid-cols-4 gap-2">
+        <div v-else class="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <div v-for="worker in gameStore.state.workers" :key="worker.id" class="bg-stone-800 p-2 rounded flex flex-col items-center text-center group relative hover:bg-stone-700 transition-colors cursor-default border border-stone-700 hover:border-stone-500">
             <div v-html="AvatarGenerator.generate(worker.name)" class="w-10 h-10 rounded overflow-hidden border border-stone-600 mb-1 shadow-sm"></div>
             <div class="text-stone-200 font-bold text-[10px] truncate w-full">{{ worker.name }}</div>

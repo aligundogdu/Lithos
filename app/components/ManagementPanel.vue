@@ -5,13 +5,13 @@
         <div class="text-4xl font-serif text-blue-200 animate-pulse">💤 Gece - Üretim Durdu</div>
     </div>
     <!-- Tabs -->
-    <div class="flex border-b border-stone-700">
+    <div class="flex border-b border-stone-700 overflow-x-auto">
       <button 
         v-for="tab in tabs" 
         :key="tab.id"
         @click="activeTab = tab.id"
         :class="[
-          'flex-1 py-3 text-sm font-serif tracking-wider transition-colors duration-500',
+          'flex-1 min-w-[80px] py-4 text-xs sm:text-sm font-serif tracking-wider transition-colors duration-500',
           activeTab === tab.id 
             ? ['bg-stone-800 border-b-2', seasonalClasses.header, seasonalClasses.border] 
             : 'text-stone-500 hover:text-stone-300 hover:bg-stone-800/50'
@@ -22,7 +22,7 @@
     </div>
 
     <!-- Content -->
-    <div class="flex-1 overflow-y-auto p-4">
+    <div class="flex-1 overflow-y-auto p-3 sm:p-4">
       <!-- Header Stats -->
       <div class="mb-6 p-4 rounded border transition-all duration-500 flex justify-between items-center" :class="seasonalClasses.card">
         <!-- Money -->
@@ -112,7 +112,7 @@
           </div>
             <button 
               @click="gameStore.buyMaterial(material.id, 1)"
-              class="w-full py-2 bg-stone-700 hover:bg-amber-700 text-stone-200 rounded transition-colors text-sm uppercase tracking-wide group relative"
+              class="w-full py-3 min-h-[44px] bg-stone-700 hover:bg-amber-700 text-stone-200 rounded transition-colors text-sm uppercase tracking-wide group relative"
               :disabled="gameStore.state.money < getSeasonalPrice(material.id, material.basePrice) || !gameStore.unlockedMaterials.includes(material.id) || (gameStore.currentStorageLoad + material.volume > gameStore.maxStorageCapacity)"
               :class="{ 'opacity-50 cursor-not-allowed': gameStore.state.money < getSeasonalPrice(material.id, material.basePrice) || !gameStore.unlockedMaterials.includes(material.id) || (gameStore.currentStorageLoad + material.volume > gameStore.maxStorageCapacity) }"
             >
