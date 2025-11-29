@@ -108,13 +108,25 @@
             <div class="text-xs text-stone-400">
               Aşama {{ getStageNumber(task.currentStage) }}/3 - %{{ getStageProgress(task).toFixed(1) }}
             </div>
-            <span :class="{
-              'text-amber-500': task.status === 'active',
-              'text-green-500': task.status === 'completed',
-              'text-red-500': task.status === 'failed',
-              'text-stone-500': task.status === 'pending',
-              'text-orange-500': task.status === 'pending_storage'
-            }" class="text-xs capitalize font-bold">{{ t.status[task.status] }}</span>
+            <div class="flex items-center gap-2">
+              <span :class="{
+                'text-amber-500': task.status === 'active',
+                'text-green-500': task.status === 'completed',
+                'text-red-500': task.status === 'failed',
+                'text-stone-500': task.status === 'pending',
+                'text-orange-500': task.status === 'pending_storage'
+              }" class="text-xs capitalize font-bold">{{ t.status[task.status] }}</span>
+              
+              <!-- Cancel Button -->
+              <button 
+                v-if="task.status === 'active' || task.status === 'pending_storage'"
+                @click="gameStore.cancelProduction(task.id)"
+                class="px-2 py-1 bg-red-700 hover:bg-red-600 text-white rounded text-xs transition-colors"
+                title="Üretimi İptal Et"
+              >
+                ✕
+              </button>
+            </div>
           </div>
           
           <div class="w-full bg-stone-900 h-3 rounded-full overflow-hidden relative">

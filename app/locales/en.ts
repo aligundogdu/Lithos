@@ -61,10 +61,11 @@ export const en = {
         workshop: 'Workshop',
         orders: 'Orders',
         market: 'Market',
-        workers: 'Workers',
+        workers: 'Staff',
         consultants: 'Consultants',
         research: 'Research',
         tools: 'Tools',
+        academy: 'Academy',
         messages: 'Messages'
     },
 
@@ -221,7 +222,17 @@ export const en = {
         lowMotivation: 'Low Motivation',
         lowMotivationDesc: '{0} is very unhappy! May leave if not given work.',
         motivationDropping: 'Motivation Dropping',
-        motivationDroppingDesc: '{0} is waiting for work.'
+        motivationDroppingDesc: '{0} is waiting for work.',
+        studentRecruited: 'Student Recruited',
+        studentRecruitedDesc: '{0} joined the academy. +{1} D. tuition received.',
+        studentGraduated: 'Graduation',
+        studentGraduatedDesc: '{0} completed their training.',
+        studentHired: 'Graduate Hired',
+        studentHiredDesc: '{0} joined the staff as an Apprentice.',
+        studentReleased: 'Graduate Released',
+        studentReleasedDesc: '{0} was released with honors. +{1} Reputation.',
+        academyFull: 'Academy Full',
+        academyFullDesc: 'No more space for students.'
     },
 
     // Messages
@@ -372,5 +383,20 @@ export const en = {
         completed: 'Completed',
         failed: 'Failed',
         pending_storage: 'Pending Storage'
+    },
+
+    // Academy
+    academy: {
+        title: 'Academy',
+        recruit: 'Recruit Student',
+        students: 'Students',
+        noStudents: 'No students yet.',
+        tuition: 'Tuition Fee',
+        duration: 'Duration',
+        graduate: 'Graduate',
+        hire: 'Hire (Apprentice)',
+        release: 'Release (+Rep)',
+        progress: 'Progress',
+        completed: 'Completed!'
     }
 };

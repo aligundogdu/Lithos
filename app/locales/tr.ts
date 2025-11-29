@@ -61,10 +61,11 @@ export const tr = {
         workshop: 'Atölye',
         orders: 'Siparişler',
         market: 'Pazar',
-        workers: 'İşçiler',
+        workers: 'Personel',
         consultants: 'Danışmanlar',
         research: 'Araştırma',
         tools: 'Aletler',
+        academy: 'Akademi',
         messages: 'Haberler'
     },
 
@@ -221,7 +222,17 @@ export const tr = {
         lowMotivation: 'Düşük Motivasyon',
         lowMotivationDesc: '{0} çok mutsuz! İş vermezseniz ayrılabilir.',
         motivationDropping: 'Motivasyon Düşüyor',
-        motivationDroppingDesc: '{0} iş bekliyor.'
+        motivationDroppingDesc: '{0} iş bekliyor.',
+        studentRecruited: 'Öğrenci Kabul Edildi',
+        studentRecruitedDesc: '{0} akademiye katıldı. +{1} D. harç alındı.',
+        studentGraduated: 'Mezuniyet',
+        studentGraduatedDesc: '{0} eğitimini tamamladı.',
+        studentHired: 'Mezun İşe Alındı',
+        studentHiredDesc: '{0} çırak olarak kadroya katıldı.',
+        studentReleased: 'Mezun Uğurlandı',
+        studentReleasedDesc: '{0} iyi dileklerle uğurlandı. +{1} İtibar.',
+        academyFull: 'Akademi Dolu',
+        academyFullDesc: 'Daha fazla öğrenci alacak yer yok.'
     },
 
     // Messages
@@ -374,5 +385,20 @@ export const tr = {
         completed: 'Tamamlandı',
         failed: 'Başarısız',
         pending_storage: 'Depo Bekliyor'
+    },
+
+    // Academy
+    academy: {
+        title: 'Akademi',
+        recruit: 'Öğrenci Al',
+        students: 'Öğrenciler',
+        noStudents: 'Henüz öğrenci yok.',
+        tuition: 'Eğitim Harcı',
+        duration: 'Süre',
+        graduate: 'Mezun Et',
+        hire: 'İşe Al (Çırak)',
+        release: 'Uğurla (+İtibar)',
+        progress: 'İlerleme',
+        completed: 'Tamamlandı!'
     }
 };

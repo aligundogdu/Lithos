@@ -57,6 +57,7 @@ export interface Student {
     arrivalTime: number; // Game time when accepted
     duration: number; // How long they stay (in minutes)
     tuitionFee: number;
+    progress: number; // Minutes trained
 }
 
 export interface Worker {

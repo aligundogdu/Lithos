@@ -688,9 +688,131 @@ export const useGameStore = defineStore('game', () => {
         }
     }
 
+    function cancelProduction(taskId: string) {
+        const index = state.value.productionTasks.findIndex(t => t.id === taskId);
+        if (index !== -1) {
+            const task = state.value.productionTasks[index];
+            if (!task) return;
+
+            // Free all workers
+            task.assignedWorkers.forEach(workerId => {
+                setWorkerStatus(workerId, 'idle');
+            });
+
+            // Remove task
+            state.value.productionTasks.splice(index, 1);
+
+            // Notify user
+            addNotification('Üretim İptal Edildi', `${task.productId} üretimi iptal edildi. İşçiler serbest bırakıldı.`, 'warning');
+        }
+    }
+
     function addStudent(student: any) {
         state.value.students.push(student);
         addMoney(student.tuitionFee);
+    }
+
+    function recruitStudent() {
+        // Max students capacity (hardcoded 3 for now, or upgradeable?)
+        const MAX_STUDENTS = 3;
+        if (state.value.students.length >= MAX_STUDENTS) {
+            addNotification((t.value.notifications as any).academyFull, (t.value.notifications as any).academyFullDesc, 'warning');
+            return;
+        }
+
+        const id = Math.random().toString(36).substring(2, 9);
+        const randomName = WORKER_NAMES[Math.floor(Math.random() * WORKER_NAMES.length)] || 'Öğrenci';
+
+        // Tuition: 50-100 Drachma
+        const tuitionFee = Math.floor(Math.random() * 51) + 50;
+
+        // Duration: 3-5 Days (in minutes)
+        const durationDays = Math.floor(Math.random() * 3) + 3;
+        const duration = durationDays * 1440;
+
+        const student = {
+            id,
+            name: randomName,
+            arrivalTime: state.value.gameTime,
+            duration,
+            tuitionFee,
+            progress: 0 // Current minutes trained
+        };
+
+        state.value.students.push(student);
+        addMoney(tuitionFee);
+        addNotification((t.value.notifications as any).studentRecruited, format((t.value.notifications as any).studentRecruitedDesc, randomName, tuitionFee), 'success');
+    }
+
+    function tickStudents(minutes: number) {
+        state.value.students.forEach(student => {
+            // Initialize progress if missing
+            if (student.progress === undefined) student.progress = 0;
+
+            if (student.progress < student.duration) {
+                student.progress += minutes;
+
+                if (student.progress >= student.duration) {
+                    student.progress = student.duration;
+                    addNotification((t.value.notifications as any).studentGraduated, format((t.value.notifications as any).studentGraduatedDesc, student.name), 'success');
+                }
+            }
+        });
+    }
+
+    function graduateStudent(studentId: string, action: 'hire' | 'release') {
+        const index = state.value.students.findIndex(s => s.id === studentId);
+        if (index === -1) return;
+
+        const student = state.value.students[index];
+        if (!student) return;
+
+        if (action === 'hire') {
+            // Hire as Apprentice (Free)
+            if (state.value.workers.length >= maxWorkers.value) {
+                addNotification(t.value.notifications.limitReached, format(t.value.notifications.limitExceededDesc, currentRank.value.title, maxWorkers.value), 'error');
+                return;
+            }
+
+            const worker: Worker = {
+                id: student.id, // Keep ID
+                type: WorkerType.APPRENTICE,
+                name: student.name,
+                skill: 3, // Base Apprentice Skill
+                salary: 50, // Standard Apprentice Salary
+                status: 'idle',
+                equippedToolIds: [],
+                experience: 0,
+                level: 1,
+                loyalty: 80, // Starts with high loyalty
+                lastWorkedAt: state.value.gameTime,
+                lastRaiseDay: 0, // Initialize
+                baseSkill: 3,
+                negotiationPending: false
+            };
+
+            // Bonus for "Apprentice School" upgrade if active
+            if (state.value.purchasedUpgradeIds.includes('apprentice_school')) {
+                worker.level = 2;
+                worker.skill += 1;
+                worker.baseSkill += 1;
+            }
+
+            state.value.workers.push(worker);
+            calculateMonthlyExpenses();
+            addNotification((t.value.notifications as any).studentHired, format((t.value.notifications as any).studentHiredDesc, student.name), 'success');
+
+        } else if (action === 'release') {
+            // Release for Reputation
+            // Base 10 Rep + Random Bonus
+            const repGain = 10 + Math.floor(Math.random() * 11);
+            state.value.reputation += repGain;
+            checkRankUp();
+            addNotification((t.value.notifications as any).studentReleased, format((t.value.notifications as any).studentReleasedDesc, student.name, repGain), 'success');
+        }
+
+        // Remove student using filter to ensure reactivity
+        state.value.students = state.value.students.filter(s => s.id !== studentId);
     }
 
     function removeStudent(studentId: string) {
@@ -949,6 +1071,9 @@ export const useGameStore = defineStore('game', () => {
             assignDailyStates();
         }
 
+        // Tick Students
+        tickStudents(minutes);
+
         // Check for 20:00 (End of Work)
         if (previousHour < 20 && currentHour >= 20) {
             addNotification('Mesai Bitti', 'İşçiler dinlenmeye çekildi.', 'info');
@@ -1121,6 +1246,7 @@ export const useGameStore = defineStore('game', () => {
         updateTaskProgress,
         completeTask,
         failTask,
+        cancelProduction,
         addStudent,
         removeStudent,
         tickTime,
@@ -1152,6 +1278,8 @@ export const useGameStore = defineStore('game', () => {
         maxStorageCapacity,
         currentStorageLoad,
         storagePercentage,
-        isStorageFull
+        isStorageFull,
+        recruitStudent,
+        graduateStudent
     };
 });

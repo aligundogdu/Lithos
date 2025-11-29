@@ -69,7 +69,7 @@
             </div>
             
             <div class="mt-4 p-3 bg-stone-900/50 rounded border border-stone-700">
-                <div class="text-xs text-stone-500 uppercase tracking-widest mb-2">{{ t.management.nextRankUnlocks }}</div>
+                <div class="text-xs text-stone-500 uppercase tracking-widest mb-2">{{ (t.management as any).nextRankUnlocks }}</div>
                 <ul class="text-sm text-stone-300 space-y-1">
                     <li v-for="unlock in gameStore.nextRank.unlocks" :key="unlock" class="flex items-center gap-2">
                         <span class="text-amber-500">🔓</span> {{ unlock }}
@@ -78,7 +78,7 @@
             </div>
           </div>
           <div v-else class="text-center text-amber-500 font-bold mt-4">
-              {{ t.management.maxRankReached }}
+              {{ (t.management as any).maxRankReached }}
           </div>
         </div>
       </div>
@@ -483,6 +483,78 @@
         </div>
       </div>
 
+      <!-- Academy Tab -->
+      <div v-if="activeTab === 'academy'" class="space-y-4">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-serif text-stone-300">{{ (t as any).academy.title }}</h3>
+            <button 
+              @click="gameStore.recruitStudent()"
+              class="px-4 py-2 bg-stone-700 hover:bg-blue-600 text-stone-200 rounded transition-colors text-sm uppercase tracking-wide"
+              :disabled="gameStore.state.students.length >= 3"
+              :class="{ 'opacity-50 cursor-not-allowed': gameStore.state.students.length >= 3 }"
+            >
+              {{ (t as any).academy.recruit }}
+            </button>
+        </div>
+
+        <div v-if="gameStore.state.students.length === 0" class="text-stone-500 text-sm italic text-center py-8 border border-stone-800 rounded bg-stone-900/30">
+          {{ (t as any).academy.noStudents }}
+        </div>
+
+        <div v-else class="space-y-3">
+          <div v-for="student in gameStore.state.students" :key="student.id" class="bg-stone-800 p-4 rounded border border-stone-700 relative overflow-hidden group">
+            
+            <div class="flex justify-between items-start mb-3 relative z-10">
+              <div class="flex items-center gap-3">
+                 <div v-html="AvatarGenerator.generate(student.name)" class="w-10 h-10 rounded overflow-hidden shrink-0 border border-stone-600 bg-stone-900"></div>
+                 <div>
+                    <div class="font-bold text-stone-200">{{ student.name }}</div>
+                    <div class="text-xs text-stone-500">{{ (t as any).academy.tuition }}: {{ student.tuitionFee }} D.</div>
+                 </div>
+              </div>
+              
+              <div class="text-right">
+                 <div class="text-xs text-stone-400 mb-1">{{ (t as any).academy.duration }}</div>
+                 <div class="font-mono text-amber-500">{{ Math.ceil((student.duration - student.progress) / 1440) }} {{ t.common.day }}</div>
+              </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="relative w-full h-4 bg-stone-900 rounded-full overflow-hidden border border-stone-700 mb-3">
+               <div 
+                 class="h-full bg-blue-600 transition-all duration-500 ease-linear relative"
+                 :style="{ width: `${(student.progress / student.duration) * 100}%` }"
+               >
+                 <div class="absolute inset-0 bg-white/10 animate-pulse"></div>
+               </div>
+               <div class="absolute inset-0 flex items-center justify-center text-[10px] font-mono text-white drop-shadow-md">
+                 %{{ Math.floor((student.progress / student.duration) * 100) }}
+               </div>
+            </div>
+
+            <!-- Actions (Only if graduated) -->
+            <div v-if="student.progress >= student.duration" class="flex gap-2 mt-2 animate-fade-in">
+                <button 
+                  @click="gameStore.graduateStudent(student.id, 'hire')"
+                  class="flex-1 py-2 bg-green-700 hover:bg-green-600 text-white rounded text-xs uppercase tracking-wide transition-colors"
+                >
+                  {{ (t as any).academy.hire }}
+                </button>
+                <button 
+                  @click="gameStore.graduateStudent(student.id, 'release')"
+                  class="flex-1 py-2 bg-purple-700 hover:bg-purple-600 text-white rounded text-xs uppercase tracking-wide transition-colors"
+                >
+                  {{ (t as any).academy.release }}
+                </button>
+            </div>
+            <div v-else class="text-center text-xs text-stone-500 italic py-1">
+                {{ (t as any).academy.progress }}...
+            </div>
+
+          </div>
+        </div>
+      </div>
+
       <!-- Orders Tab -->
       <div v-if="activeTab === 'orders'" class="space-y-4">
         <h3 class="text-lg font-serif text-stone-300 mb-2">{{ t.management.orders }}</h3>
@@ -713,6 +785,7 @@ const tabs = computed(() => [
   { id: 'tools', label: t.value.tabs.tools },
   { id: 'knowledge', label: t.value.tabs.research },
   { id: 'consultants', label: t.value.tabs.consultants },
+  { id: 'academy', label: (t.value as any).tabs.academy },
   { id: 'orders', label: t.value.tabs.orders },
   { id: 'messages', label: t.value.tabs.messages }
 ]);
@@ -792,6 +865,7 @@ function hireWorker(type: WorkerType, salary: number) {
     loyalty: 50,
     negotiationPending: false,
     lastWorkedAt: 0,
+    lastRaiseDay: 0,
     baseSkill: type === WorkerType.MASTER ? 10 : (type === WorkerType.APPRENTICE ? 3 : 1)
   };
 
