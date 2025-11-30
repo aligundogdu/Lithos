@@ -30,15 +30,49 @@
         </div>
         
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-           <div v-for="(amount, type) in gameStore.state.inventory" :key="type" class="bg-stone-800 p-2 rounded border border-stone-600 flex flex-col items-center text-center group relative hover:border-amber-500 transition-colors">
-             <span class="capitalize text-stone-300 font-bold text-xs mb-0.5 truncate w-full">{{ getMaterialName(type) }}</span>
-             <span class="font-mono text-amber-400 text-sm">{{ formatNumber(amount) }}</span>
+           <div 
+             v-for="(amount, type) in gameStore.state.inventory" 
+             :key="type" 
+             class="relative p-2 rounded border border-stone-600 flex flex-col items-center justify-center text-center group hover:border-amber-500 transition-all aspect-square cursor-default"
+             :style="{
+               backgroundImage: `url(/images/materials/${getMaterialImageName(type)})`,
+               backgroundSize: 'cover',
+               backgroundPosition: 'center'
+             }"
+           >
+             <!-- Dark overlay for text readability -->
+             <div class="absolute inset-0 bg-gradient-to-b from-stone-900/80 via-stone-900/70 to-stone-900/90 group-hover:from-stone-900/70 group-hover:via-stone-900/60 group-hover:to-stone-900/80 transition-all overflow-hidden rounded"></div>
+             
+             <!-- Detailed Tooltip -->
+             <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-stone-900 text-stone-200 text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30 border border-stone-600 shadow-xl text-left min-w-[200px]">
+               <div class="font-bold text-amber-500 mb-1">{{ getMaterialName(type) }}</div>
+               <div class="text-[10px] text-stone-400 mb-2 italic">{{ MATERIALS[type]?.description }}</div>
+               <div class="border-t border-stone-700 pt-1 mt-1 space-y-0.5">
+                 <div class="text-[10px] flex justify-between">
+                   <span class="text-stone-500">Hacim:</span>
+                   <span class="font-mono">{{ MATERIALS[type]?.volume }} VU</span>
+                 </div>
+                 <div class="text-[10px] flex justify-between">
+                   <span class="text-stone-500">Fiyat:</span>
+                   <span class="font-mono text-amber-400">{{ MATERIALS[type]?.basePrice }} 💰</span>
+                 </div>
+                 <div class="text-[10px] flex justify-between">
+                   <span class="text-stone-500">Sertlik:</span>
+                   <span class="font-mono">{{ MATERIALS[type]?.hardness }}</span>
+                 </div>
+               </div>
+             </div>
+             
+             <!-- Content: Only Number -->
+             <div class="relative z-10 w-full">
+               <span class="font-mono text-amber-400 text-2xl sm:text-3xl font-bold drop-shadow-lg">{{ formatNumber(amount) }}</span>
+             </div>
              
              <!-- Sell Button (Overlay) -->
              <button 
                v-if="amount > 0"
                @click="gameStore.sellMaterial(type, 1)"
-               class="absolute top-1 right-1 w-5 h-5 bg-stone-900/80 hover:bg-green-600 text-stone-400 hover:text-white rounded-full flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100 text-xs"
+               class="absolute top-1 right-1 w-6 h-6 bg-stone-900/90 hover:bg-green-600 text-stone-400 hover:text-white rounded-full flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100 text-xs z-20 shadow-lg"
                :title="t.common.sell"
              >
                $
@@ -53,9 +87,8 @@
           {{ t.workshop.noWorkers }}
         </div>
         <div v-else class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          <div v-for="worker in gameStore.state.workers" :key="worker.id" class="bg-stone-800 p-2 rounded flex flex-col items-center text-center group relative hover:bg-stone-700 transition-colors cursor-default border border-stone-700 hover:border-stone-500">
-            <div v-html="AvatarGenerator.generate(worker.name)" class="w-10 h-10 rounded overflow-hidden border border-stone-600 mb-1 shadow-sm"></div>
-            <div class="text-stone-200 font-bold text-[10px] truncate w-full">{{ worker.name }}</div>
+          <div v-for="worker in gameStore.state.workers" :key="worker.id" class="bg-stone-800 p-2 rounded flex flex-col items-center justify-center text-center group relative hover:bg-stone-700 transition-colors cursor-default border border-stone-700 hover:border-stone-500 aspect-square">
+            <div v-html="AvatarGenerator.generate(worker.name)" class="w-16 h-16 sm:w-20 sm:h-20 rounded overflow-hidden border border-stone-600 shadow-sm"></div>
             
             <!-- Tooltip for details -->
             <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-stone-900 text-stone-200 text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 border border-stone-600 shadow-xl text-left">
@@ -216,5 +249,16 @@ function getSeasonEmoji(season: string): string {
     winter: '❄️'
   };
   return emojis[season] || '';
+}
+
+function getMaterialImageName(materialType: string): string {
+  const imageMap: Record<string, string> = {
+    'clay': 'nehir.webp',
+    'limestone': 'kirec.webp',
+    'marble_pentelic': 'mermer.webp',
+    'basalt': 'bazalt.webp',
+    'rubble': 'moloz.webp'
+  };
+  return imageMap[materialType] || 'mermer.webp';
 }
 </script>
