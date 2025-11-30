@@ -697,7 +697,7 @@
               class="px-2 py-1 text-[10px] uppercase font-bold rounded border transition-colors whitespace-nowrap"
               :class="filterType === type ? 'bg-amber-600 text-white border-amber-500' : 'bg-stone-800 text-stone-400 border-stone-700 hover:border-stone-500'"
             >
-              {{ type === 'all' ? 'Tümü' : getWorkerTypeName(type) }}
+              {{ type === 'all' ? 'Tümü' : getWorkerTypeName(type as any) }}
             </button>
           </div>
 
@@ -708,9 +708,9 @@
           <div 
             v-for="worker in filteredWorkers" 
             :key="worker.id"
-            @click="toggleWorkerSelection(worker.id)"
+            @click="toggleWorkerSelection(worker.id, $event)"
             :class="[
-              'p-2 rounded border cursor-pointer transition-colors flex justify-between items-center',
+              'p-2 rounded border cursor-pointer transition-colors flex justify-between items-center select-none',
               selectedWorkerIds.includes(worker.id) 
                 ? 'bg-amber-900/50 border-amber-600' 
                 : 'bg-stone-800 border-stone-700 hover:border-stone-500'
@@ -970,12 +970,43 @@ function buyTool(toolId: string) {
   gameStore.buyTool(toolId, qty);
 }
 
-function toggleWorkerSelection(workerId: string) {
+const lastSelectedWorkerId = ref<string | null>(null);
+
+function toggleWorkerSelection(workerId: string, event?: MouseEvent) {
+  // Handle Shift+Click Range Selection
+  if (event?.shiftKey && lastSelectedWorkerId.value) {
+    const currentIndex = filteredWorkers.value.findIndex(w => w.id === workerId);
+    const lastIndex = filteredWorkers.value.findIndex(w => w.id === lastSelectedWorkerId.value);
+
+    if (currentIndex !== -1 && lastIndex !== -1) {
+      const start = Math.min(currentIndex, lastIndex);
+      const end = Math.max(currentIndex, lastIndex);
+      
+      const workersInRange = filteredWorkers.value.slice(start, end + 1);
+      
+      // Determine target state based on the clicked worker's new state
+      // If clicked worker is NOT selected, we select all. If it IS selected, we might deselect?
+      // Standard behavior: Select all in range.
+      
+      workersInRange.forEach(w => {
+        if (!selectedWorkerIds.value.includes(w.id)) {
+          selectedWorkerIds.value.push(w.id);
+        }
+      });
+      
+      lastSelectedWorkerId.value = workerId;
+      return;
+    }
+  }
+
+  // Normal Toggle
   const index = selectedWorkerIds.value.indexOf(workerId);
   if (index === -1) {
     selectedWorkerIds.value.push(workerId);
+    lastSelectedWorkerId.value = workerId;
   } else {
     selectedWorkerIds.value.splice(index, 1);
+    lastSelectedWorkerId.value = workerId; // Update last selected even on deselect
   }
 }
 
