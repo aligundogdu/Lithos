@@ -113,13 +113,43 @@ Yüksek rütbelerde işe alabileceğiniz özel karakterlerdir. Üretim yapmazlar
 
 ---
 
+## 🎓 Akademi ve Öğrenciler (YENİ!)
+
+Atölyenizin geleceğini garanti altına almak için öğrenci yetiştirebilirsiniz.
+
+### Öğrenci Sistemi
+*   **Alım:** Her zaman 1 öğrenci kontenjanınız vardır.
+*   **Eğitim:** Öğrenciler üretim yapmaz, sadece izler ve öğrenir.
+*   **Mezuniyet:** %100 eğitime ulaştıklarında mezun olurlar.
+    *   %20 Şans: **Usta (Master)** olarak katılır.
+    *   %80 Şans: **Çırak (Apprentice)** olarak katılır.
+*   **Ayrılma:** Mezun olduklarında işe alınmazlarsa atölyeyi terk ederler.
+
+---
+
+## 🖥️ UI ve Kontroller
+
+### İşçi Seçimi
+Kalabalık ekipleri yönetmek için gelişmiş seçim araçları mevcuttur:
+*   **Filtreleme:** Tümü, Usta, Çırak veya Köle olarak filtreleme.
+*   **Sıralama:** Tecrübeye göre (En yetenekli veya en çaylak) sıralama.
+*   **Çoklu Seçim (Shift+Click):** Bir işçiye tıklayıp, Shift'e basılı tutarak başka bir işçiye tıkladığınızda aradaki herkes seçilir.
+
+### Görselleştirme
+*   **Malzemeler:** Envanterdeki her malzeme gerçek dokusuyla (Kil, Mermer, Bazalt vb.) gösterilir.
+*   **Detaylı Bilgi:** Kutuların üzerine gelindiğinde (Hover) detaylı bilgi kartı açılır (Hacim, Fiyat, Sertlik vb.).
+
+---
+
 ## ⏳ Gelişmiş Zaman Yönetimi ve Mevsimler
 
 Oyun artık sürekli bir akış yerine döngüsel bir zaman diliminde ilerler.
+*   **Zaman Akışı:** 1 Gerçek Saniye = 12 Oyun Dakikası.
 
 ### Günlük Döngü
 *   **Mesai Saatleri:** 06:00 - 20:00.
 *   **Uyku Modu:** 20:00'dan sonra işçiler dinlenir ve üretim durur. Atölye kararır.
+*   **Hızlı Gece:** Gece olduğunda zaman 5 kat hızlı akar.
 
 ### Mevsimler
 Yıl 4 mevsime ayrılır (Her mevsim 10 oyun günü).
