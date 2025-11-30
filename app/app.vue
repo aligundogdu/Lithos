@@ -15,9 +15,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import NotificationContainer from '~/components/NotificationContainer.vue';
 import RankUpModal from '~/components/RankUpModal.vue';
+import { useGameTime } from '~/composables/useGameTime';
 
 const showSplash = ref(true);
+
+// Initialize game loop
+const { resume, calculateOfflineProgress } = useGameTime();
+
+onMounted(() => {
+  // Calculate offline progress when app loads
+  calculateOfflineProgress();
+  
+  // Start the game loop
+  resume();
+});
 </script>

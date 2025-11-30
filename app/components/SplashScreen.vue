@@ -44,10 +44,35 @@ const emit = defineEmits<{
   complete: []
 }>();
 
-// Randomly select one of 15 splash images
+const TOTAL_IMAGES = 23;
+const STORAGE_KEY = 'lithos_splash_shown';
+
+// Select next unseen splash image
 const randomSplashImage = computed(() => {
-  const imageNumber = Math.floor(Math.random() * 15) + 1; // 1-15
-  return `/images/splash/${imageNumber}.webp`;
+  // Get shown images from localStorage
+  const shownStr = localStorage.getItem(STORAGE_KEY);
+  const shown: number[] = shownStr ? JSON.parse(shownStr) : [];
+  
+  // If all images have been shown, reset
+  if (shown.length >= TOTAL_IMAGES) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
+    shown.length = 0;
+  }
+  
+  // Get list of unseen images
+  const allImages = Array.from({ length: TOTAL_IMAGES }, (_, i) => i + 1);
+  const unseenImages = allImages.filter(num => !shown.includes(num));
+  
+  // Pick random from unseen (fallback to 1 if somehow empty)
+  const selectedImage = unseenImages.length > 0 
+    ? unseenImages[Math.floor(Math.random() * unseenImages.length)]
+    : 1;
+  
+  // Mark as shown
+  shown.push(selectedImage);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(shown));
+  
+  return `/images/splash/${selectedImage}.webp`;
 });
 
 onMounted(() => {

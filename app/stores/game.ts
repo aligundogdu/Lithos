@@ -214,7 +214,9 @@ export const useGameStore = defineStore('game', () => {
                 worker.dailyState = DAILY_STATES[stateIndex];
             }
         });
-        addNotification('Yeni Gün', 'İşçiler iş başı yaptı.', 'info');
+        if (state.value.workers.length > 0) {
+            addNotification('Yeni Gün', 'İşçiler iş başı yaptı.', 'info');
+        }
     }
 
     // Actions
@@ -1076,7 +1078,9 @@ export const useGameStore = defineStore('game', () => {
 
         // Check for 20:00 (End of Work)
         if (previousHour < 20 && currentHour >= 20) {
-            addNotification('Mesai Bitti', 'İşçiler dinlenmeye çekildi.', 'info');
+            if (state.value.workers.length > 0) {
+                addNotification('Mesai Bitti', 'İşçiler dinlenmeye çekildi.', 'info');
+            }
         }
 
         state.value.lastSaveTime = Date.now();
