@@ -675,10 +675,38 @@
         </div>
 
         <div class="space-y-2">
-          <div class="text-sm text-stone-400">Müsait İşçiler:</div>
-          <div v-if="availableWorkers.length === 0" class="text-stone-500 text-xs italic">Boşta işçi yok.</div>
+          <div class="flex justify-between items-center mb-2">
+            <div class="text-sm text-stone-400">Müsait İşçiler:</div>
+            
+            <!-- Sort Button -->
+            <button 
+              @click="toggleSort"
+              class="text-xs px-2 py-1 rounded bg-stone-800 border border-stone-700 hover:border-amber-500 text-stone-300 transition-colors flex items-center gap-1"
+              :title="sortType === 'desc' ? 'En Tecrübeliler Önce' : 'En Tecrübesizler Önce'"
+            >
+              <span>{{ sortType === 'desc' ? '▼ Tecrübeli' : '▲ Tecrübesiz' }}</span>
+            </button>
+          </div>
+
+          <!-- Filter Buttons -->
+          <div class="flex gap-1 mb-3 overflow-x-auto pb-1">
+            <button 
+              v-for="type in ['all', 'master', 'apprentice', 'slave']" 
+              :key="type"
+              @click="filterType = type"
+              class="px-2 py-1 text-[10px] uppercase font-bold rounded border transition-colors whitespace-nowrap"
+              :class="filterType === type ? 'bg-amber-600 text-white border-amber-500' : 'bg-stone-800 text-stone-400 border-stone-700 hover:border-stone-500'"
+            >
+              {{ type === 'all' ? 'Tümü' : getWorkerTypeName(type) }}
+            </button>
+          </div>
+
+          <div v-if="filteredWorkers.length === 0" class="text-stone-500 text-xs italic text-center py-4">
+            Bu kriterlere uygun işçi bulunamadı.
+          </div>
+
           <div 
-            v-for="worker in availableWorkers" 
+            v-for="worker in filteredWorkers" 
             :key="worker.id"
             @click="toggleWorkerSelection(worker.id)"
             :class="[
@@ -693,7 +721,10 @@
                 <div v-html="AvatarGenerator.generate(worker.name)" class="w-6 h-6 rounded overflow-hidden shrink-0"></div>
                 {{ worker.name }}
               </div>
-              <div class="text-xs text-stone-500 capitalize">{{ worker.type }} (Skill: {{ worker.skill }})</div>
+              <div class="text-xs text-stone-500 capitalize flex gap-2">
+                <span>{{ getWorkerTypeName(worker.type) }}</span>
+                <span class="text-amber-500/70">Skill: {{ worker.skill }}</span>
+              </div>
             </div>
             <div v-if="selectedWorkerIds.includes(worker.id)" class="text-amber-500">✓</div>
           </div>
@@ -762,6 +793,10 @@ const showReputationModal = ref(false);
 const selectedWorkerIds = ref<string[]>([]);
 const toolPurchaseQuantities = ref<Record<string, number>>({});
 
+// Filter & Sort States
+const filterType = ref<string>('all');
+const sortType = ref<'asc' | 'desc'>('desc');
+
 const { t, format } = useTranslation();
 const { getMaterialName, getMaterialDescription, getMaterialUnlockCondition } = useMaterialTranslation();
 const { getRankTitle } = useRankTranslation();
@@ -808,6 +843,34 @@ const workerTypes = [
 const availableWorkers = computed(() => {
   return gameStore.state.workers.filter(w => w.status === 'idle');
 });
+
+const filteredWorkers = computed(() => {
+  let workers = [...availableWorkers.value];
+
+  // Filter
+  if (filterType.value !== 'all') {
+    workers = workers.filter(w => w.type === filterType.value);
+  }
+
+  // Sort
+  workers.sort((a, b) => {
+    // Primary sort: Skill
+    const skillDiff = sortType.value === 'desc' 
+      ? b.skill - a.skill 
+      : a.skill - b.skill;
+    
+    if (skillDiff !== 0) return skillDiff;
+
+    // Secondary sort: Name
+    return a.name.localeCompare(b.name);
+  });
+
+  return workers;
+});
+
+function toggleSort() {
+  sortType.value = sortType.value === 'desc' ? 'asc' : 'desc';
+}
 
 const selectedWorkers = computed(() => {
   return gameStore.state.workers.filter(w => selectedWorkerIds.value.includes(w.id));
